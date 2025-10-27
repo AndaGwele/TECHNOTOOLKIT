@@ -940,11 +940,12 @@ if (isset($_GET['logout'])) {
     });
     </script>
 
-    <?php endif; ?>
+   
 </body>
 
 
 </html>
+
 
 
 

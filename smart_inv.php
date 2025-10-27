@@ -520,6 +520,42 @@ if (isset($_GET['logout'])) {
             display: block;
         }
     </style>
+    <script>
+         function openInventoryModal() {
+        console.log('Opening inventory modal');
+        document.getElementById('inventory-modal').style.display = 'block';
+    }
+    
+    function openCandidateModal(jobseekerId, jobseekerName) {
+        console.log('Opening candidate modal for:', jobseekerName);
+        document.getElementById('jobseeker-id').value = jobseekerId;
+        document.getElementById('candidate-name').value = jobseekerName;
+        document.getElementById('candidate-modal').style.display = 'block';
+    }
+    
+    function closeModal(modalId) {
+        document.getElementById(modalId).style.display = 'none';
+    }
+    
+    function switchTab(tabName) {
+        // Hide all tab contents
+        document.querySelectorAll('.tab-content').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        
+        // Remove active class from all tabs
+        document.querySelectorAll('.nav-tab').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        
+        // Show selected tab content
+        document.getElementById(tabName).classList.add('active');
+        
+        // Activate selected tab
+        document.querySelector(`.nav-tab[data-tab="${tabName}"]`).classList.add('active');
+    }
+
+    </script>
 </head>
 
 <body>
@@ -827,40 +863,7 @@ if (isset($_GET['logout'])) {
 
 <script>
     // Simple inline event handlers
-    function openInventoryModal() {
-        console.log('Opening inventory modal');
-        document.getElementById('inventory-modal').style.display = 'block';
-    }
-    
-    function openCandidateModal(jobseekerId, jobseekerName) {
-        console.log('Opening candidate modal for:', jobseekerName);
-        document.getElementById('jobseeker-id').value = jobseekerId;
-        document.getElementById('candidate-name').value = jobseekerName;
-        document.getElementById('candidate-modal').style.display = 'block';
-    }
-    
-    function closeModal(modalId) {
-        document.getElementById(modalId).style.display = 'none';
-    }
-    
-    function switchTab(tabName) {
-        // Hide all tab contents
-        document.querySelectorAll('.tab-content').forEach(tab => {
-            tab.classList.remove('active');
-        });
-        
-        // Remove active class from all tabs
-        document.querySelectorAll('.nav-tab').forEach(tab => {
-            tab.classList.remove('active');
-        });
-        
-        // Show selected tab content
-        document.getElementById(tabName).classList.add('active');
-        
-        // Activate selected tab
-        document.querySelector(`.nav-tab[data-tab="${tabName}"]`).classList.add('active');
-    }
-
+   
     // Close modal when clicking outside
     window.addEventListener('click', function(e) {
         if (e.target.classList.contains('modal')) {
@@ -873,4 +876,5 @@ if (isset($_GET['logout'])) {
 </body>
 
 </html>
+
 

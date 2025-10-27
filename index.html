@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Techno-Toolkit | Empowering Communities Through
+            Technology</title>
+        <style>
+        /* CSS Variables for consistent theming */
+        :root {
+            --primary: #2563eb;
+            --secondary: #10b981;
+            --accent: #f59e0b;
+            --neutral: #64748b;
+            --light: #f8fafc;
+            --dark: #1e293b;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --radius: 8px;
+            --transition: all 0.3s ease;
+        }
+
+        /* Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background-color: var(--light);
+        }
+
+        h1, h2, h3, h4 {
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 1rem;
+        }
+
+        p {
+            margin-bottom: 1rem;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius);
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #1d4ed8;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #059669;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .btn-accent {
+            background-color: var(--accent);
+            color: white;
+        }
+
+        .btn-accent:hover {
+            background-color: #d97706;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-outline:hover {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        section {
+            padding: 5rem 0;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .section-title h2 {
+            font-size: 2.25rem;
+            color: var(--dark);
+        }
+
+        .section-title p {
+            font-size: 1.125rem;
+            color: var(--neutral);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Header & Navigation */
+        header {
+            background-color: white;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+        }
+
+        .nav-links li {
+            margin-left: 2rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--dark);
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .dropdown {
+            position: relative;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: white;
+            min-width: 200px;
+            box-shadow: var(--shadow);
+            border-radius: var(--radius);
+            padding: 0.5rem 0;
+            z-index: 1;
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        .dropdown-content a {
+            display: block;
+            padding: 0.75rem 1.5rem;
+            color: var(--dark);
+        }
+
+        .dropdown-content a:hover {
+            background-color: #f1f5f9;
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--dark);
+        }
+
+        /* Hero Section */
+        /* linear-gradient(rgba(37, 99, 235, 0.9), rgba(37, 99, 235, 0.8)), */
+        .hero {
+            background: url('https://images.unsplash.com/photo-1521737711867-e3b97375f902?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            text-align: center;
+            padding: 8rem 0;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            max-width: 700px;
+            margin: 0 auto 2.5rem;
+        }
+
+        .hero-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        /* Solutions Grid */
+        .solutions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .solution-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            text-align: center;
+        }
+
+        .solution-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        .solution-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+        }
+
+        .solution-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .solution-card p {
+            color: var(--neutral);
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-list {
+            list-style: none;
+            text-align: left;
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-list li {
+            margin-bottom: 0.5rem;
+            position: relative;
+            padding-left: 1.5rem;
+        }
+
+        .feature-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--secondary);
+            font-weight: bold;
+        }
+
+        /* Problem Section */
+        .problem-section {
+            background-color: #f1f5f9;
+        }
+
+        .problem-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 2rem;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-description {
+            color: var(--neutral);
+        }
+
+        /* How It Works */
+        .process-flow {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-top: 3rem;
+        }
+
+        .process-step {
+            text-align: center;
+            flex: 1;
+            min-width: 150px;
+            margin-bottom: 2rem;
+        }
+
+        .step-icon {
+            width: 80px;
+            height: 80px;
+            background-color: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .step-arrow {
+            flex: 0 0 50px;
+            text-align: center;
+            color: var(--neutral);
+            font-size: 1.5rem;
+        }
+
+        /* Success Metrics */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+        }
+
+        .metric-card {
+            text-align: center;
+            padding: 1.5rem;
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-label {
+            color: var(--neutral);
+        }
+
+        /* Testimonials */
+        .testimonials-section {
+            background-color: #f1f5f9;
+        }
+
+        .testimonials-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .testimonial-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+        }
+
+        .testimonial-text {
+            font-style: italic;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .testimonial-text:before {
+            content: """;
+            font-size: 4rem;
+            color: var(--accent);
+            position: absolute;
+            top: -1.5rem;
+            left: -1rem;
+            opacity: 0.3;
+        }
+
+        .testimonial-author {
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .testimonial-role {
+            color: var(--neutral);
+            font-size: 0.875rem;
+        }
+
+        /* CTA Sections */
+        .cta-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .cta-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 3rem 2rem;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+
+        .cta-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .cta-card p {
+            margin-bottom: 2rem;
+            color: var(--neutral);
+        }
+
+        .cta-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        /* Partners */
+        .partners-section {
+            background-color: #f1f5f9;
+            text-align: center;
+        }
+
+        .partners-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .partner-logo {
+            filter: grayscale(100%);
+            opacity: 0.7;
+            transition: var(--transition);
+            max-width: 150px;
+            margin: 0 auto;
+        }
+
+        .partner-logo:hover {
+            filter: grayscale(0%);
+            opacity: 1;
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--dark);
+            color: white;
+            padding: 4rem 0 2rem;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 3rem;
+            margin-bottom: 3rem;
+        }
+
+        .footer-column h3 {
+            font-size: 1.25rem;
+            margin-bottom: 1.5rem;
+            color: white;
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.75rem;
+        }
+
+        .footer-links a {
+            color: #cbd5e1;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        .newsletter-form {
+            display: flex;
+            margin-top: 1rem;
+        }
+
+        .newsletter-input {
+            flex: 1;
+            padding: 0.75rem;
+            border: none;
+            border-radius: var(--radius) 0 0 var(--radius);
+        }
+
+        .newsletter-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0 1.25rem;
+            border-radius: 0 var(--radius) var(--radius) 0;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .newsletter-btn:hover {
+            background-color: #1d4ed8;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid #334155;
+            color: #94a3b8;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .hero h1 {
+                font-size: 2.25rem;
+            }
+
+            .hero p {
+                font-size: 1.125rem;
+            }
+
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .step-arrow {
+                display: none;
+            }
+
+            .process-step {
+                flex: 0 0 50%;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+            rel="stylesheet">
+    </head>
+    <body>
+        <!-- Header & Navigation -->
+        <header>
+            <div class="container">
+                <nav class="navbar">
+                    <a href="#" class="logo">Techno-Toolkit</a>
+
+                    <ul class="nav-links">
+                        <li><a href="#">Home</a></li>
+                        <li class="dropdown">
+                            <a href="#">Solutions ▾</a>
+                            <div class="dropdown-content">
+                                <a href="#">Skills & Mentorship Hub</a>
+                                <a href="#">CV Optimizer (CVision)</a>
+                                <a href="#">Talent Connector</a>
+                                <a href="#">Smart Inventory Tracker</a>
+                            </div>
+                        </li>
+                        <li><a href="signupLogin.html"
+                                class="btn btn-outline">Sign In</a></li>
+
+                    </ul>
+
+                    <button class="mobile-menu-btn">☰</button>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="container">
+                <h1>Empowering Communities Through Technology</h1>
+                <p>Four integrated solutions to build economic resilience,
+                    streamline talent discovery, and support
+                    micro-entrepreneurs</p>
+                <div class="hero-buttons">
+                    <a href="signupLogin.html" class="btn btn-primary">Explore
+                        Solutions</a>
+                    <a href="signupLogin.html" class="btn btn-outline">Join Our
+                        Community</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Solutions Grid -->
+        <section id="solutions">
+            <div class="container">
+                <div class="section-title">
+                    <h2>Our Integrated Solutions</h2>
+                    <p>Four powerful tools working together to create economic
+                        opportunities and build community resilience</p>
+                </div>
+
+                <div class="solutions-grid">
+                    <!-- Solution 1 -->
+                    <div class="solution-card">
+                        <div class="solution-icon">❶</div>
+                        <h3>Skills & Mentorship Hub</h3>
+                        <p>Personalized learning paths and mentorship
+                            programs</p>
+                        <ul class="feature-list">
+                            <li>Custom Bootcamps</li>
+                            <li>Skill Tracking</li>
+                            <li>Industry Certifications</li>
+                            <li>Career Guidance</li>
+                        </ul>
+                        <a href="signupLogin.html" class="btn btn-primary">Learn
+                            More</a>
+                    </div>
+
+                    <!-- Solution 2 -->
+                    <div class="solution-card">
+                        <div class="solution-icon">❷</div>
+                        <h3>CV Optimizer (CVision)</h3>
+                        <p>ATS-friendly resume builder with smart keyword
+                            matching</p>
+                        <ul class="feature-list">
+                            <li>Job Description Analysis</li>
+                            <li>Keyword Optimization</li>
+                            <li>Formatting Templates</li>
+                            <li>Instant Feedback</li>
+                        </ul>
+                        <a href="signupLogin.html" class="btn btn-primary">Try
+                            CVision</a>
+                    </div>
+
+                    <!-- Solution 3 -->
+                    <div class="solution-card">
+                        <div class="solution-icon">💷</div>
+                        <h3>Talent Connector</h3>
+                        <p>Intelligent matching between candidates and
+                            employers</p>
+                        <ul class="feature-list">
+                            <li>Verified Skill Matching</li>
+                            <li>Real-time Job Sync</li>
+                            <li>Employer Dashboard</li>
+                            <li>Performance Analytics</li>
+                        </ul>
+                        <a href="signupLogin.html" class="btn btn-primary">Find
+                            Talent</a>
+                    </div>
+
+                    <!-- Solution 4 -->
+                    <div class="solution-card">
+                        <div class="solution-icon">💹</div>
+                        <h3>Smart Inventory Tracker</h3>
+                        <p>Inventory management for township
+                            micro-entrepreneurs</p>
+                        <ul class="feature-list">
+                            <li>Real-time Stock Tracking</li>
+                            <li>Temperature Monitoring</li>
+                            <li>Low Stock Alerts</li>
+                            <li>Sales Forecasting</li>
+                        </ul>
+                        <a href="signupLogin.html" class="btn btn-primary">See
+                            Demo</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Problem Section -->
+        <section class="problem-section">
+            <div class="container">
+                <div class="section-title">
+                    <h2>The Problem We Solve</h2>
+                    <p>Addressing critical gaps in the employment and small
+                        business ecosystem</p>
+                </div>
+
+                <div class="problem-stats">
+                    <div class="stat-card">
+                        <div class="stat-number">60%</div>
+                        <div class="stat-description">of skilled candidates get
+                            rejected by ATS systems</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-number">30%</div>
+                        <div class="stat-description">of revenue lost by
+                            township businesses due to poor inventory
+                            management</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-number">100+</div>
+                        <div class="stat-description">hours spent by employers
+                            screening unqualified applicants</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- How It Works -->
+        <section id="how-it-works">
+            <div class="container">
+                <div class="section-title">
+                    <h2>How It Works</h2>
+                    <p>Our integrated ecosystem creates a seamless journey from
+                        skills development to employment and business growth</p>
+                </div>
+
+                <div class="process-flow">
+                    <div class="process-step">
+                        <div class="step-icon">1</div>
+                        <h4>Job Market</h4>
+                        <p>Identify skills gaps and employment opportunities</p>
+                    </div>
+
+                    <div class="step-arrow">→</div>
+
+                    <div class="process-step">
+                        <div class="step-icon">2</div>
+                        <h4>CV Optimizer</h4>
+                        <p>Create ATS-friendly resumes with keyword
+                            optimization</p>
+                    </div>
+
+                    <div class="step-arrow">→</div>
+
+                    <div class="process-step">
+                        <div class="step-icon">3</div>
+                        <h4>Skills Hub</h4>
+                        <p>Develop in-demand skills through personalized
+                            training</p>
+                    </div>
+
+                    <div class="step-arrow">→</div>
+
+                    <div class="process-step">
+                        <div class="step-icon">4</div>
+                        <h4>Talent Connector</h4>
+                        <p>Match qualified candidates with employers</p>
+                    </div>
+
+                    <div class="step-arrow">→</div>
+
+                    <div class="process-step">
+                        <div class="step-icon">5</div>
+                        <h4>Hired!</h4>
+                        <p>Successful employment and career growth</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Success Metrics -->
+        <section>
+            <div class="container">
+                <div class="section-title">
+                    <h2>Our Planned Impact</h2>
+                    <p>Measurable results that demonstrate our value to
+                        communities and businesses</p>
+                </div>
+
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-value">85%</div>
+                        <div class="metric-label">faster hiring process</div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-value">3x</div>
+                        <div class="metric-label">more interview calls</div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-value">45%</div>
+                        <div class="metric-label">reduction in stockouts</div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-value">200+</div>
+                        <div class="metric-label">businesses empowered</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Testimonials -->
+        <!-- <section class="testimonials-section">
+            <div class="container">
+                <div class="section-title">
+                    <h2>What Our Community Says</h2>
+                    <p>Real stories from job seekers, employers, and
+                        entrepreneurs</p>
+                </div>
+
+                <div class="testimonials-container">
+                    <div class="testimonial-card">
+                        <div class="testimonial-text">
+                            CVision helped me get 3 interviews in one week after
+                            months of unsuccessful applications!
+                        </div>
+                        <div class="testimonial-author">Sarah</div>
+                        <div class="testimonial-role">Marketing
+                            Professional</div>
+                    </div>
+
+                    <div class="testimonial-card">
+                        <div class="testimonial-text">
+                            The inventory tracker saved my spaza shop from
+                            closing by helping me manage stock effectively.
+                        </div>
+                        <div class="testimonial-author">David</div>
+                        <div class="testimonial-role">Small Business Owner</div>
+                    </div>
+
+                    <div class="testimonial-card">
+                        <div class="testimonial-text">
+                            We hired 5 qualified developers in just 2 weeks
+                            using the Talent Connector platform.
+                        </div>
+                        <div class="testimonial-author">Tech Company HR
+                            Manager</div>
+                    </div>
+                </div>
+            </div>
+        </section> -->
+
+        <!-- CTA Sections -->
+        <section>
+            <div class="container">
+                <div class="cta-grid">
+                    <!-- CTA for Job Seekers -->
+                    <div class="cta-card">
+                        <h3>For Job Seekers</h3>
+                        <p>Ready to transform your career and land your dream
+                            job?</p>
+                        <div class="cta-buttons">
+                            <a href="signupLogin.html"
+                                class="btn btn-primary">Optimize Your
+                                CV</a>
+                            <a href="signupLogin.html"
+                                class="btn btn-outline">Find
+                                Mentorship</a>
+                        </div>
+                    </div>
+
+                    <!-- CTA for Employers -->
+                    <div class="cta-card">
+                        <h3>For Employers</h3>
+                        <p>Find pre-vetted, skilled talent faster with our
+                            matching technology</p>
+                        <div class="cta-buttons">
+                            <a href="signupLogin.html"
+                                class="btn btn-secondary">Post Jobs</a>
+                            <a href="signupLogin.html"
+                                class="btn btn-outline">Browse
+                                Candidates</a>
+                        </div>
+                    </div>
+
+                    <!-- CTA for Entrepreneurs -->
+                    <div class="cta-card">
+                        <h3>For Entrepreneurs</h3>
+                        <p>Take control of your inventory and grow your business
+                            with smart tools</p>
+                        <div class="cta-buttons">
+                            <a href="signupLogin.html"
+                                class="btn btn-accent">View Demo</a>
+                            <a href="signupLogin.html"
+                                class="btn btn-outline">Get Started</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Partners -->
+        <section class="partners-section">
+            <div class="container">
+                <div class="section-title">
+                    <h2>Trusted by Leading Organizations</h2>
+                    <p>We partner with businesses, training centers, and
+                        community organizations</p>
+                </div>
+
+                <div class="partners-grid">
+                    <div class="partner-logo">[Partner Logo 1]</div>
+                    <div class="partner-logo">[Partner Logo 2]</div>
+                    <div class="partner-logo">[Partner Logo 3]</div>
+                    <div class="partner-logo">[Partner Logo 4]</div>
+                    <div class="partner-logo">[Partner Logo 5]</div>
+                    <div class="partner-logo">[Partner Logo 6]</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <div class="container">
+                <div class="footer-content">
+                    <div class="footer-column">
+                        <h3>Techno-Toolkit</h3>
+                        <p>Building economic resilience through technology. From
+                            skills to employment to entrepreneurship.</p>
+                    </div>
+
+                    <div class="footer-column">
+                        <h3>Solutions</h3>
+                        <ul class="footer-links">
+                            <li><a href="signupLogin.html">Skills & Mentorship
+                                    Hub</a></li>
+                            <li><a href="signupLogin.html">CV Optimizer
+                                    (CVision)</a></li>
+                            <li><a href="signupLogin.html">Talent
+                                    Connector</a></li>
+                            <li><a href="signupLogin.html">Smart Inventory
+                                    Tracker</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="footer-column">
+                        <h3>Company</h3>
+                        <ul class="footer-links">
+                            <li><a href="#">About Us</a></li>
+                            <li><a href="#">Success Stories</a></li>
+                            <li><a href="#">Pricing</a></li>
+                            <li><a href="#">Blog</a></li>
+                            <li><a href="#">Contact</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="footer-column">
+                        <h3>Stay Connected</h3>
+                        <p>Subscribe to our newsletter for updates and
+                            insights</p>
+                        <form class="newsletter-form">
+                            <input type="email" class="newsletter-input"
+                                placeholder="Your email address">
+                            <button type="submit"
+                                class="newsletter-btn">Subscribe</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="footer-bottom">
+                    <p>&copy; 2023 Techno-Toolkit. All rights reserved. |
+                        Community-driven solutions for real-world problems</p>
+                </div>
+            </div>
+        </footer>
+
+        <script>
+        // Simple mobile menu toggle
+        document.querySelector('.mobile-menu-btn').addEventListener('click', function() {
+            const navLinks = document.querySelector('.nav-links');
+            navLinks.style.display = navLinks.style.display === 'flex' ? 'none' : 'flex';
+        });
+    </script>
+    </body>
+</html>

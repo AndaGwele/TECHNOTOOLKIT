@@ -9,8 +9,8 @@ ini_set('display_errors', 1);
 $host = "dpg-d3vnf0ngi27c73ahg940-a.oregon-postgres.render.com";
 $port = "5432";
 $db_name = "toolkit_3dlp";
-$username = "toolkit_3dlp_user";  // Change to your PostgreSQL username
-$password = "RMMOboK8xw6MBqXRswfdacOHjGXCkLE8";   // Change to your PostgreSQL password
+$username = "toolkit_3dlp_user";
+$password = "RMMOboK8xw6MBqXRswfdacOHjGXCkLE8";
 
 try {
     // Create database connection
@@ -60,20 +60,22 @@ try {
     $_SESSION['user_type'] = $user['user_type'];
 
     // Return success response
-    if( $user['user_type'] == "job-seeker"){
-        header('Hub.php');
-
+    if ($user['user_type'] == "job-seeker") {
+        header('Location: Hub.php');
+        exit(); // Important: stop execution after redirect
+    } else {
+        // For other user types, return JSON response
+        echo json_encode([
+            'success' => true,
+            'message' => 'Login successful!',
+            'data' => [
+                'id' => $user['id'],
+                'full_name' => $user['full_name'],
+                'email' => $user['email'],
+                'user_type' => $user['user_type']
+            ]
+        ]);
     }
-    // echo json_encode([
-    //     'success' => true,
-    //     'message' => 'Login successful!',
-    //     'data' => [
-    //         'id' => $user['id'],
-    //         'full_name' => $user['full_name'],
-    //         'email' => $user['email'],
-    //         'user_type' => $user['user_type']
-    //     ]
-    // ]);
 
 } catch (Exception $e) {
     echo json_encode([
@@ -81,6 +83,4 @@ try {
         'message' => $e->getMessage()
     ]);
 }
-
 ?>
-

@@ -12,7 +12,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'job-seeker') {
 $host = "dpg-d3vnf0ngi27c73ahg940-a.oregon-postgres.render.com";
 $port = "5432";
 $db_name = "toolkit_3dlp";
-$username = "toolkit_3dlp_user";  // Change to your PostgreSQL username
+$username = "toolkit_3dlp_user";
 $password = "RMMOboK8xw6MBqXRswfdacOHjGXCkLE8";
 
 try {
@@ -20,15 +20,12 @@ try {
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     // Get user data
-$user_id = $_SESSION['user_id'];
-$stmt = $conn->prepare("SELECT * FROM hub_users WHERE user_id = ?");
-$stmt->execute([$user_id]);
-$user = $stmt->fetch(PDO::FETCH_ASSOC);
-
+    $user_id = $_SESSION['user_id'];
+    $stmt = $conn->prepare("SELECT * FROM hub_users WHERE user_id = ?");
+    $stmt->execute([$user_id]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$user) {
-        // This means it's a new user, insert their data into hub_users
-        
         // First, get the user's basic info from the users table
         $stmt = $conn->prepare("SELECT full_name, email, user_type FROM users WHERE id = ?");
         $stmt->execute([$user_id]);
@@ -36,15 +33,15 @@ $user = $stmt->fetch(PDO::FETCH_ASSOC);
         
         if ($user_data) {
             // Insert the new user into hub_users table
-            // Use proper boolean values (true/false) instead of strings
+            $is_mentor = ($user_data['user_type'] === 'mentor') ? 1 : 0;
+            
             $stmt = $conn->prepare("INSERT INTO hub_users (user_id, full_name, email, user_type, is_mentor) VALUES (?, ?, ?, ?, ?)");
             $stmt->execute([
                 $user_id,
                 $user_data['full_name'],
                 $user_data['email'],
                 $user_data['user_type'],
-                1
-               
+                $is_mentor
             ]);
             
             // Fetch the newly created user record
@@ -338,34 +335,35 @@ if (isset($_GET['logout'])) {
         width: 500px;
         max-width: 90%;
     }
-        /* Fix for modal buttons */
-.modal-content {
-    max-height: 85vh;
-    overflow-y: auto;
-}
 
-.modal-content form {
-    min-height: auto;
-}
+    /* Fix for modal buttons */
+    .modal-content {
+        max-height: 85vh;
+        overflow-y: auto;
+    }
 
-.modal-content .btn-primary {
-    width: 100%;
-    margin-top: 20px;
-    padding: 12px 20px;
-    font-size: 16px;
-    background: #007bff;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    position: relative;
-    z-index: 10;
-}
+    .modal-content form {
+        min-height: auto;
+    }
 
-/* Ensure form groups don't push button out of view */
-.form-group:last-of-type {
-    margin-bottom: 30px;
-}
+    .modal-content .btn-primary {
+        width: 100%;
+        margin-top: 20px;
+        padding: 12px 20px;
+        font-size: 16px;
+        background: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        position: relative;
+        z-index: 10;
+    }
+
+    /* Ensure form groups don't push button out of view */
+    .form-group:last-of-type {
+        margin-bottom: 30px;
+    }
 
     .close {
         float: right;
@@ -578,13 +576,62 @@ if (isset($_GET['logout'])) {
         display: block;
     }
 
-    /* CV Analysis Section */
-    .cv-analysis-section {
+    /* CVision Modal Styles */
+    .form-card {
         background: white;
         border-radius: 8px;
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         padding: 25px;
         margin-bottom: 20px;
+    }
+
+    .result-card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        margin-top: 20px;
+    }
+
+    .loading {
+        text-align: center;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        margin: 20px 0;
+    }
+
+    .success-text {
+        background: #d4edda;
+        color: #155724;
+        padding: 10px;
+        border-radius: 4px;
+        text-align: center;
+        margin: 10px 0;
+    }
+
+    .feedback-strength {
+        border-left: 4px solid #28a745;
+        background-color: #f8fff9;
+        padding: 12px;
+        margin: 8px 0;
+        border-radius: 4px;
+    }
+
+    .feedback-weakness {
+        border-left: 4px solid #dc3545;
+        background-color: #fff8f8;
+        padding: 12px;
+        margin: 8px 0;
+        border-radius: 4px;
+    }
+
+    .feedback-improvement {
+        border-left: 4px solid #ffc107;
+        background-color: #fffef0;
+        padding: 12px;
+        margin: 8px 0;
+        border-radius: 4px;
     }
 
     .upload-area {
@@ -614,21 +661,6 @@ if (isset($_GET['logout'])) {
         margin: 8px 0;
         border-radius: 6px;
         border-left: 4px solid #007bff;
-    }
-
-    .feedback-strength {
-        border-left-color: #28a745;
-        background-color: #f8fff9;
-    }
-
-    .feedback-weakness {
-        border-left-color: #dc3545;
-        background-color: #fff8f8;
-    }
-
-    .feedback-improvement {
-        border-left-color: #ffc107;
-        background-color: #fffef0;
     }
     </style>
 </head>
@@ -661,7 +693,7 @@ if (isset($_GET['logout'])) {
                 </li>
                 
                 <li><a href="#" data-section="mentorship" class="nav-link">Mentorship</a></li>
-               <li><a href="#" class="nav-link" id="open-cvision-iframe">Analyze CV</a></li>
+                <li><a href="#" class="nav-link" id="open-cvision-modal">Analyze CV</a></li>
                 <?php if ($user['is_mentor']): ?>
                 <li><a href="#" data-section="mentor-dashboard" class="nav-link">Mentor Dashboard</a></li>
                 <?php endif; ?>
@@ -966,9 +998,7 @@ if (isset($_GET['logout'])) {
                 </div>
             </section>
 
-            <!-- Keep the rest of your sections (Mentorship, Profile, Mentor Dashboard) the same -->
-            <!-- ... -->
-                         <!-- Mentorship Section -->
+            <!-- Mentorship Section -->
             <section id="mentorship" class="section">
                 <div class="section-header">
                     <h2>Find Your Mentor</h2>
@@ -1023,153 +1053,6 @@ if (isset($_GET['logout'])) {
                                 </select>
                             </div>
                             <button type="submit" class="btn btn-primary">Send Request</button>
-                        </form>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Skills Section -->
-            <section id="skills" class="section">
-                <div class="section-header">
-                    <h2>Skill Tracking</h2>
-                    <p>Monitor your skill development and progress</p>
-                    <button class="btn btn-primary" id="skill-btn">+ Add Skill</button>
-                </div>
-
-                <div class="skills-container">
-                    <div class="skills-list" id="skills-list">
-                        <?php if (empty($skills)): ?>
-                        <p class="empty-state">No skills tracked yet. Add your first skill!</p>
-                        <?php else: ?>
-                        <?php foreach ($skills as $skill): ?>
-                        <div class="card">
-                            <div class="card-header">
-                                <h3><?php echo htmlspecialchars($skill['name']); ?></h3>
-                                <form method="post" style="display:inline;">
-                                    <input type="hidden" name="action" value="delete_skill">
-                                    <input type="hidden" name="skill_id" value="<?php echo $skill['id']; ?>">
-                                    <button type="submit" class="delete-btn"
-                                        onclick="return confirm('Are you sure you want to delete this skill?')">Delete</button>
-                                </form>
-                            </div>
-                            <p><strong>Category:</strong>
-                                <?php echo ucfirst(str_replace('-', ' ', $skill['category'])); ?></p>
-                            <p><strong>Level:</strong> <?php echo ucfirst($skill['level']); ?></p>
-                            <?php if (!empty($skill['description'])): ?>
-                            <p><?php echo htmlspecialchars($skill['description']); ?></p>
-                            <?php endif; ?>
-                        </div>
-                        <?php endforeach; ?>
-                        <?php endif; ?>
-                    </div>
-                </div>
-
-                <!-- Add Skill Modal -->
-                <div id="skill-modal" class="modal">
-                    <div class="modal-content">
-                        <span class="close">&times;</span>
-                        <h3>Add New Skill</h3>
-                        <form method="post">
-                            <input type="hidden" name="action" value="create_skill">
-                            <div class="form-group">
-                                <label for="skill-name">Skill Name</label>
-                                <input type="text" id="skill-name" name="skill_name" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="skill-category">Category</label>
-                                <select id="skill-category" name="skill_category" required>
-                                    <option value="technical">Technical</option>
-                                    <option value="soft-skills">Soft Skills</option>
-                                    <option value="business">Business</option>
-                                    <option value="creative">Creative</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="skill-level">Current Level</label>
-                                <select id="skill-level" name="skill_level" required>
-                                    <option value="beginner">Beginner</option>
-                                    <option value="intermediate">Intermediate</option>
-                                    <option value="advanced">Advanced</option>
-                                    <option value="expert">Expert</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="description">Description</label>
-                                <input type="text" id="description" name="description">
-                            </div>
-                            <button type="submit" class="btn btn-primary">Add Skill</button>
-                        </form>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Certifications Section -->
-            <section id="certifications" class="section">
-                <div class="section-header">
-                    <h2>Certifications</h2>
-                    <p>Showcase your verified credentials</p>
-                    <button class="btn btn-primary" id="cert-btn">+ Add Certification</button>
-                </div>
-
-                <div class="certifications-container" id="certifications-list">
-                    <?php if (empty($certifications)): ?>
-                    <p class="empty-state">No certifications yet. Earn your first one!</p>
-                    <?php else: ?>
-                    <?php foreach ($certifications as $cert): ?>
-                    <div class="card">
-                        <div class="card-header">
-                            <h3><?php echo htmlspecialchars($cert['name']); ?></h3>
-                            <form method="post" style="display:inline;">
-                                <input type="hidden" name="action" value="delete_certification">
-                                <input type="hidden" name="certification_id" value="<?php echo $cert['id']; ?>">
-                                <button type="submit" class="delete-btn"
-                                    onclick="return confirm('Are you sure you want to delete this certification?')">Delete</button>
-                            </form>
-                        </div>
-                        <p><strong>Issuer:</strong> <?php echo htmlspecialchars($cert['issuer']); ?></p>
-                        <p><strong>Date Earned:</strong> <?php echo date('M j, Y', strtotime($cert['date_earned'])); ?>
-                        </p>
-                        <?php if (!empty($cert['credential_id'])): ?>
-                        <p><strong>Credential ID:</strong> <?php echo htmlspecialchars($cert['credential_id']); ?></p>
-                        <?php endif; ?>
-                        <?php if (!empty($cert['credential_url'])): ?>
-                        <p><strong>Credential URL:</strong> <a
-                                href="<?php echo htmlspecialchars($cert['credential_url']); ?>" target="_blank">View</a>
-                        </p>
-                        <?php endif; ?>
-                    </div>
-                    <?php endforeach; ?>
-                    <?php endif; ?>
-                </div>
-
-                <!-- Add Certification Modal -->
-                <div id="cert-modal" class="modal">
-                    <div class="modal-content">
-                        <span class="close">&times;</span>
-                        <h3>Add Certification</h3>
-                        <form method="post">
-                            <input type="hidden" name="action" value="create_certification">
-                            <div class="form-group">
-                                <label for="cert-name">Certification Name</label>
-                                <input type="text" id="cert-name" name="cert_name" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="cert-issuer">Issuing Organization</label>
-                                <input type="text" id="cert-issuer" name="cert_issuer" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="cert-date">Date Earned</label>
-                                <input type="date" id="cert-date" name="cert_date" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="cert-credential-id">Credential ID</label>
-                                <input type="text" id="cert-credential-id" name="cert_credential_id">
-                            </div>
-                            <div class="form-group">
-                                <label for="cert-url">Credential URL</label>
-                                <input type="url" id="cert-url" name="cert_url">
-                            </div>
-                            <button type="submit" class="btn btn-primary">Add Certification</button>
                         </form>
                     </div>
                 </div>
@@ -1262,244 +1145,247 @@ if (isset($_GET['logout'])) {
                         <p class="empty-state">No active mentees yet</p>
                     </div>
                 </div>
-                <!-- CVision Modal with iframe -->
-<!-- CVision Modal -->
-<div id="cvision-modal" class="modal">
-    <div class="modal-content" style="width: 95%; max-width: 1000px; max-height: 90vh; overflow-y: auto;">
-        <span class="close">&times;</span>
-        
-        <div class="form-card">
-            <div class="card-header">
-                <h2 style="margin: 0;">Resume Analysis</h2>
+            </section>
+
+            <!-- CVision Modal -->
+            <div id="cvision-modal" class="modal">
+                <div class="modal-content" style="width: 95%; max-width: 1000px; max-height: 90vh; overflow-y: auto;">
+                    <span class="close">&times;</span>
+                    
+                    <div class="form-card">
+                        <div class="card-header">
+                            <h2 style="margin: 0;">Resume Analysis</h2>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="cvision-document-upload">Upload Your Resume (PDF, max 5MB):</label>
+                            <input type="file" id="cvision-document-upload" accept=".pdf" />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="cvision-job-description">Job Description:</label>
+                            <textarea
+                                id="cvision-job-description"
+                                placeholder="Paste the job description here..."
+                                rows="6"></textarea>
+                        </div>
+
+                        <button type="button" class="btn btn-primary" id="cvision-analyze-btn">
+                            Analyze Resume
+                        </button>
+                    </div>
+
+                    <div id="cvision-loading" class="loading" style="display: none;">
+                        <p>Processing your resume and analyzing against job description...</p>
+                    </div>
+
+                    <!-- AI Feedback Results -->
+                    <div id="cvision-ai-feedback" class="result-card" style="display: none;">
+                        <div class="card-header">
+                            <h3>AI Analysis & Recommendations</h3>
+                        </div>
+                        <div id="cvision-feedback-content"></div>
+                    </div>
+
+                    <!-- Fallback Keyword Match -->
+                    <div id="cvision-match-result" class="result-card" style="display: none;">
+                        <div class="card-header">
+                            <h3>Basic Keyword Analysis</h3>
+                        </div>
+                        <div class="match-result">
+                            <p><strong>AI unavailable. Showing basic keyword match analysis.</strong></p>
+                            <p><strong>Match Percentage:</strong> <span id="cvision-match-percentage"></span>%</p>
+                            <p><strong>Missing Keywords:</strong> <span id="cvision-missing-keywords"></span></p>
+                        </div>
+                    </div>
+
+                    <div id="cvision-success-text" class="success-text" style="display: none;">
+                        ✅ Resume text successfully extracted and ready for analysis
+                    </div>
+                </div>
             </div>
-
-            <div class="form-group">
-                <label for="cvision-document-upload">Upload Your Resume (PDF):</label>
-                <input type="file" id="cvision-document-upload" accept=".pdf" />
-            </div>
-
-            <div class="form-group">
-                <label for="cvision-job-description">Job Description:</label>
-                <textarea
-                    id="cvision-job-description"
-                    placeholder="Paste the job description here..."
-                    rows="6"></textarea>
-            </div>
-
-            <button type="button" class="btn btn-primary" id="cvision-analyze-btn">
-                Analyze Resume
-            </button>
-        </div>
-
-        <div id="cvision-loading" class="loading" style="display: none;">
-            <p>Processing your resume and analyzing against job description...</p>
-        </div>
-
-        <!-- AI Feedback Results -->
-        <div id="cvision-ai-feedback" class="result-card" style="display: none;">
-            <div class="card-header">
-                <h3>AI Analysis & Recommendations</h3>
-            </div>
-            <div id="cvision-feedback-content"></div>
-        </div>
-
-        <!-- Fallback Keyword Match -->
-        <div id="cvision-match-result" class="result-card" style="display: none;">
-            <div class="card-header">
-                <h3>Basic Keyword Analysis</h3>
-            </div>
-            <div class="match-result">
-                <p><strong>AI unavailable. Showing basic keyword match analysis.</strong></p>
-                <p><strong>Match Percentage:</strong> <span id="cvision-match-percentage"></span>%</p>
-                <p><strong>Missing Keywords:</strong> <span id="cvision-missing-keywords"></span></p>
-            </div>
-        </div>
-
-        <div id="cvision-success-text" class="success-text" style="display: none;">
-            ✅ Resume text successfully extracted and ready for analysis
-        </div>
-    </div>
-</div>
-
-
         </main>
     </div>
 
     <script>
-        // Iframe Modal Functionality
-// CVision Modal Functionality
-document.addEventListener('DOMContentLoaded', function() {
-    const cvisionModal = document.getElementById('cvision-modal');
-    const openCvisionBtn = document.getElementById('open-cvision-modal');
-    
-    // CVision elements
-    const documentUpload = document.getElementById('cvision-document-upload');
-    const jobDescription = document.getElementById('cvision-job-description');
-    const analyzeBtn = document.getElementById('cvision-analyze-btn');
-    const loading = document.getElementById('cvision-loading');
-    const aiFeedback = document.getElementById('cvision-ai-feedback');
-    const feedbackContent = document.getElementById('cvision-feedback-content');
-    const matchResult = document.getElementById('cvision-match-result');
-    const matchPercentage = document.getElementById('cvision-match-percentage');
-    const missingKeywords = document.getElementById('cvision-missing-keywords');
-    const successText = document.getElementById('cvision-success-text');
-    
-    let cvText = '';
-    let pdfjsLib = null;
+        // CVision Modal Functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const cvisionModal = document.getElementById('cvision-modal');
+            const openCvisionBtn = document.getElementById('open-cvision-modal');
+            
+            // CVision elements
+            const documentUpload = document.getElementById('cvision-document-upload');
+            const jobDescription = document.getElementById('cvision-job-description');
+            const analyzeBtn = document.getElementById('cvision-analyze-btn');
+            const loading = document.getElementById('cvision-loading');
+            const aiFeedback = document.getElementById('cvision-ai-feedback');
+            const feedbackContent = document.getElementById('cvision-feedback-content');
+            const matchResult = document.getElementById('cvision-match-result');
+            const matchPercentage = document.getElementById('cvision-match-percentage');
+            const missingKeywords = document.getElementById('cvision-missing-keywords');
+            const successText = document.getElementById('cvision-success-text');
+            
+            let cvText = '';
+            let pdfjsLib = null;
 
-    // Load pdf.js dynamically
-    const script = document.createElement("script");
-    script.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js";
-    script.onload = () => {
-        window.pdfjsLib.GlobalWorkerOptions.workerSrc =
-            "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
-        pdfjsLib = window.pdfjsLib;
-        console.log("✅ pdf.js loaded for CVision modal");
-    };
-    document.head.appendChild(script);
+            // Load pdf.js dynamically
+            const script = document.createElement("script");
+            script.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js";
+            script.onload = () => {
+                window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+                    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
+                pdfjsLib = window.pdfjsLib;
+                console.log("✅ pdf.js loaded for CVision modal");
+            };
+            document.head.appendChild(script);
 
-    // Open modal
-    if (openCvisionBtn) {
-        openCvisionBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            cvisionModal.style.display = 'block';
-            resetCVisionForm();
-        });
-    }
-    
-    // Close modal when clicking X
-    cvisionModal.querySelector('.close').addEventListener('click', function() {
-        cvisionModal.style.display = 'none';
-    });
-    
-    // Close modal when clicking outside
-    window.addEventListener('click', function(e) {
-        if (e.target === cvisionModal) {
-            cvisionModal.style.display = 'none';
-        }
-    });
-    
-    // Close modal with Escape key
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && cvisionModal.style.display === 'block') {
-            cvisionModal.style.display = 'none';
-        }
-    });
+            // Open modal
+            if (openCvisionBtn) {
+                openCvisionBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    cvisionModal.style.display = 'block';
+                    resetCVisionForm();
+                });
+            }
+            
+            // Close modal when clicking X
+            cvisionModal.querySelector('.close').addEventListener('click', function() {
+                cvisionModal.style.display = 'none';
+            });
+            
+            // Close modal when clicking outside
+            window.addEventListener('click', function(e) {
+                if (e.target === cvisionModal) {
+                    cvisionModal.style.display = 'none';
+                }
+            });
+            
+            // Close modal with Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && cvisionModal.style.display === 'block') {
+                    cvisionModal.style.display = 'none';
+                }
+            });
 
-    // CVision functionality
-    if (documentUpload && analyzeBtn) {
-        documentUpload.addEventListener('change', handleFileUpload);
-        analyzeBtn.addEventListener('click', handleAnalyze);
-    }
+            // CVision functionality
+            if (documentUpload && analyzeBtn) {
+                documentUpload.addEventListener('change', handleFileUpload);
+                analyzeBtn.addEventListener('click', handleAnalyze);
+            }
 
-    function resetCVisionForm() {
-        cvText = '';
-        if (documentUpload) documentUpload.value = '';
-        if (jobDescription) jobDescription.value = '';
-        if (aiFeedback) aiFeedback.style.display = 'none';
-        if (matchResult) matchResult.style.display = 'none';
-        if (successText) successText.style.display = 'none';
-        if (loading) loading.style.display = 'none';
-        if (analyzeBtn) {
-            analyzeBtn.disabled = false;
-            analyzeBtn.textContent = 'Analyze Resume';
-        }
-    }
+            function resetCVisionForm() {
+                cvText = '';
+                if (documentUpload) documentUpload.value = '';
+                if (jobDescription) jobDescription.value = '';
+                if (aiFeedback) aiFeedback.style.display = 'none';
+                if (matchResult) matchResult.style.display = 'none';
+                if (successText) successText.style.display = 'none';
+                if (loading) loading.style.display = 'none';
+                if (analyzeBtn) {
+                    analyzeBtn.disabled = false;
+                    analyzeBtn.textContent = 'Analyze Resume';
+                }
+            }
 
-    async function handleFileUpload(event) {
-        if (!pdfjsLib) {
-            alert("PDF processor is still loading. Please wait.");
-            return;
-        }
-        
-        const file = event.target.files[0];
-        if (!file) return;
-        
-        if (file.type !== 'application/pdf') {
-            alert('Please upload a PDF file only.');
-            return;
-        }
-
-        setLoading(true);
-        hideResults();
-        
-        try {
-            const fileReader = new FileReader();
-            fileReader.onload = async function () {
-                const typedArray = new Uint8Array(this.result);
-                const pdf = await pdfjsLib.getDocument(typedArray).promise;
-
-                let fullText = "";
-                for (let i = 1; i <= pdf.numPages; i++) {
-                    const page = await pdf.getPage(i);
-                    const textContent = await page.getTextContent();
-                    const pageText = textContent.items.map((item) => item.str).join(" ");
-                    fullText += pageText + "\n";
+            async function handleFileUpload(event) {
+                if (!pdfjsLib) {
+                    alert("PDF processor is still loading. Please wait.");
+                    return;
+                }
+                
+                const file = event.target.files[0];
+                if (!file) return;
+                
+                // File size validation (5MB limit)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('File size must be less than 5MB.');
+                    return;
+                }
+                
+                if (file.type !== 'application/pdf') {
+                    alert('Please upload a PDF file only.');
+                    return;
                 }
 
-                cvText = fullText;
-                setLoading(false);
-                showSuccessText();
-            };
-            fileReader.readAsArrayBuffer(file);
-        } catch (err) {
-            console.error(err);
-            alert('Failed to extract text from PDF.');
-            setLoading(false);
-        }
-    }
+                setLoading(true);
+                hideResults();
+                
+                try {
+                    const fileReader = new FileReader();
+                    fileReader.onload = async function () {
+                        const typedArray = new Uint8Array(this.result);
+                        const pdf = await pdfjsLib.getDocument(typedArray).promise;
 
-    function preprocessText(text) {
-        const stopwords = [
-            "a","an","the","and","or","but","if","then","else","for","of","on","in","with",
-            "to","from","by","as","at","be","is","are","was","were","this","that","these",
-            "those","such","it","its","i","you","he","she","they","we"
-        ];
-        return text
-            .toLowerCase()
-            .replace(/[^a-z0-9\s]/g, "")
-            .split(/\s+/)
-            .filter(Boolean)
-            .filter((word) => !stopwords.includes(word));
-    }
+                        let fullText = "";
+                        for (let i = 1; i <= pdf.numPages; i++) {
+                            const page = await pdf.getPage(i);
+                            const textContent = await page.getTextContent();
+                            const pageText = textContent.items.map((item) => item.str).join(" ");
+                            fullText += pageText + "\n";
+                        }
 
-    function computeKeywordMatch(cv, job) {
-        const cvWords = preprocessText(cv);
-        const jobWords = preprocessText(job);
-        const jobWordSet = Array.from(new Set(jobWords));
+                        cvText = fullText;
+                        setLoading(false);
+                        showSuccessText();
+                    };
+                    fileReader.readAsArrayBuffer(file);
+                } catch (err) {
+                    console.error(err);
+                    alert('Failed to extract text from PDF.');
+                    setLoading(false);
+                }
+            }
 
-        const foundKeywords = [];
-        const missingKeywords = [];
+            function preprocessText(text) {
+                const stopwords = [
+                    "a","an","the","and","or","but","if","then","else","for","of","on","in","with",
+                    "to","from","by","as","at","be","is","are","was","were","this","that","these",
+                    "those","such","it","its","i","you","he","she","they","we"
+                ];
+                return text
+                    .toLowerCase()
+                    .replace(/[^a-z0-9\s]/g, "")
+                    .split(/\s+/)
+                    .filter(Boolean)
+                    .filter((word) => !stopwords.includes(word));
+            }
 
-        jobWordSet.forEach((word) => {
-            if (cvWords.includes(word)) foundKeywords.push(word);
-            else missingKeywords.push(word);
-        });
+            function computeKeywordMatch(cv, job) {
+                const cvWords = preprocessText(cv);
+                const jobWords = preprocessText(job);
+                const jobWordSet = Array.from(new Set(jobWords));
 
-        const matchPercentage = Math.round(
-            (foundKeywords.length / jobWordSet.length) * 100
-        );
+                const foundKeywords = [];
+                const missingKeywords = [];
 
-        return { matchPercentage, missingKeywords, foundKeywords };
-    }
+                jobWordSet.forEach((word) => {
+                    if (cvWords.includes(word)) foundKeywords.push(word);
+                    else missingKeywords.push(word);
+                });
 
-    async function handleAnalyze() {
-        if (!cvText) {
-            alert('Please upload a resume first.');
-            return;
-        }
-        
-        if (!jobDescription.value.trim()) {
-            alert('Please enter a job description.');
-            return;
-        }
+                const matchPercentage = Math.round(
+                    (foundKeywords.length / jobWordSet.length) * 100
+                );
 
-        setLoading(true);
-        hideResults();
-        hideSuccessText();
+                return { matchPercentage, missingKeywords, foundKeywords };
+            }
 
-        const API_KEY = "AIzaSyDhdk2VpT0T2l_f0ZXNAEr0_Wf5WYYc6d0";
-        const prompt = `
+            async function handleAnalyze() {
+                if (!cvText) {
+                    alert('Please upload a resume first.');
+                    return;
+                }
+                
+                if (!jobDescription.value.trim()) {
+                    alert('Please enter a job description.');
+                    return;
+                }
+
+                setLoading(true);
+                hideResults();
+                hideSuccessText();
+
+                const prompt = `
 You are an expert resume optimizer and ATS system.
 Given the CV text and job description below, provide a concise, structured analysis:
 
@@ -1515,194 +1401,188 @@ JOB DESCRIPTION:
 ${jobDescription.value}
 `;
 
-        try {
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    contents: [{
-                        parts: [{
-                            text: prompt
-                        }]
-                    }]
-                })
-            });
+                try {
+                    const response = await fetch('cv_analysis.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            cv_text: cvText,
+                            job_description: jobDescription.value
+                        })
+                    });
 
-            if (!response.ok) {
-                throw new Error(`API request failed with status ${response.status}`);
-            }
+                    if (!response.ok) {
+                        throw new Error(`Analysis failed with status ${response.status}`);
+                    }
 
-            const data = await response.json();
-            const feedback = data.candidates[0].content.parts[0].text;
-            showAiFeedback(feedback);
-        } catch (err) {
-            console.error("Gemini API failed:", err);
-            const localMatch = computeKeywordMatch(cvText, jobDescription.value);
-            showMatchResult(localMatch);
-        } finally {
-            setLoading(false);
-        }
-    }
-
-    function renderAiFeedback(feedback) {
-        if (!feedback) return '<p class="empty-state">No feedback generated.</p>';
-        const lines = feedback.split("\n");
-        return lines.map((line, idx) => {
-            if (line.toUpperCase().includes("STRENGTH")) return `<p class="feedback-strength">${line}</p>`;
-            if (line.toUpperCase().includes("WEAKNESS")) return `<p class="feedback-weakness">${line}</p>`;
-            if (line.toUpperCase().includes("IMPROVEMENT")) return `<p class="feedback-improvement">${line}</p>`;
-            if (line.trim() === "") return `<br>`;
-            return `<p>${line}</p>`;
-        }).join('');
-    }
-
-    // UI Helper Functions
-    function setLoading(isLoading) {
-        if (loading) {
-            loading.style.display = isLoading ? 'block' : 'none';
-        }
-        if (analyzeBtn) {
-            analyzeBtn.disabled = isLoading;
-            analyzeBtn.textContent = isLoading ? 'Analyzing...' : 'Analyze Resume';
-        }
-    }
-
-    function showAiFeedback(feedback) {
-        if (feedbackContent) {
-            feedbackContent.innerHTML = renderAiFeedback(feedback);
-        }
-        if (aiFeedback) {
-            aiFeedback.style.display = 'block';
-        }
-    }
-
-    function showMatchResult(result) {
-        if (matchPercentage) {
-            matchPercentage.textContent = result.matchPercentage;
-        }
-        if (missingKeywords) {
-            missingKeywords.textContent = result.missingKeywords.join(", ") || "None";
-        }
-        if (matchResult) {
-            matchResult.style.display = 'block';
-        }
-    }
-
-    function hideResults() {
-        if (aiFeedback) aiFeedback.style.display = 'none';
-        if (matchResult) matchResult.style.display = 'none';
-    }
-
-    function showSuccessText() {
-        if (successText) successText.style.display = 'block';
-    }
-
-    function hideSuccessText() {
-        if (successText) successText.style.display = 'none';
-    }
-});
-    // Simple JavaScript for UI interactions (no API calls)
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('DOM loaded'); // Debug log
-
-        // Navigation
-        const navLinks = document.querySelectorAll('.nav-link');
-        const sections = document.querySelectorAll('.section');
-
-        navLinks.forEach(link => {
-            link.addEventListener('click', function(e) {
-                e.preventDefault();
-                const targetSection = this.getAttribute('data-section');
-
-                // Update active nav link
-                navLinks.forEach(l => l.classList.remove('active'));
-                this.classList.add('active');
-
-                // Show target section
-                sections.forEach(s => s.classList.remove('active'));
-                document.getElementById(targetSection).classList.add('active');
-            });
-        });
-
-        // Modal handling
-        const modals = document.querySelectorAll('.modal');
-        const closeButtons = document.querySelectorAll('.close');
-
-        // Bootcamp modal
-        const bootcampBtn = document.getElementById('bootcamp-btn');
-        if (bootcampBtn) {
-            bootcampBtn.addEventListener('click', function() {
-                console.log('Bootcamp button clicked'); // Debug log
-                document.getElementById('bootcamp-modal').style.display = 'block';
-            });
-        }
-
-        // Skill modal
-        const skillBtn = document.getElementById('skill-btn');
-        if (skillBtn) {
-            skillBtn.addEventListener('click', function() {
-                console.log('Skill button clicked'); // Debug log
-                document.getElementById('skill-modal').style.display = 'block';
-            });
-        }
-
-        // Certification modal
-        const certBtn = document.getElementById('cert-btn');
-        if (certBtn) {
-            certBtn.addEventListener('click', function() {
-                console.log('Certification button clicked'); // Debug log
-                document.getElementById('cert-modal').style.display = 'block';
-            });
-        }
-
-        // Mentor request modal
-        const requestButtons = document.querySelectorAll('.request-btn');
-        requestButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const mentorId = this.getAttribute('data-mentor-id');
-                const mentorName = this.getAttribute('data-mentor-name');
-
-                document.getElementById('mentor-id').value = mentorId;
-                document.getElementById('mentor-name').value = mentorName;
-                document.getElementById('mentor-modal').style.display = 'block';
-            });
-        });
-
-        // Close modals
-        closeButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                this.closest('.modal').style.display = 'none';
-            });
-        });
-
-        // Close modal when clicking outside
-        window.addEventListener('click', function(e) {
-            modals.forEach(modal => {
-                if (e.target === modal) {
-                    modal.style.display = 'none';
+                    const data = await response.json();
+                    const feedback = data.candidates[0].content.parts[0].text;
+                    showAiFeedback(feedback);
+                } catch (err) {
+                    console.error("Analysis failed:", err);
+                    const localMatch = computeKeywordMatch(cvText, jobDescription.value);
+                    showMatchResult(localMatch);
+                    alert("AI analysis unavailable. Showing basic keyword analysis.");
+                } finally {
+                    setLoading(false);
                 }
-            });
+            }
+
+            function renderAiFeedback(feedback) {
+                if (!feedback) return '<p class="empty-state">No feedback generated.</p>';
+                const lines = feedback.split("\n");
+                return lines.map((line, idx) => {
+                    if (line.toUpperCase().includes("STRENGTH")) return `<p class="feedback-strength">${line}</p>`;
+                    if (line.toUpperCase().includes("WEAKNESS")) return `<p class="feedback-weakness">${line}</p>`;
+                    if (line.toUpperCase().includes("IMPROVEMENT")) return `<p class="feedback-improvement">${line}</p>`;
+                    if (line.trim() === "") return `<br>`;
+                    return `<p>${line}</p>`;
+                }).join('');
+            }
+
+            // UI Helper Functions
+            function setLoading(isLoading) {
+                if (loading) {
+                    loading.style.display = isLoading ? 'block' : 'none';
+                }
+                if (analyzeBtn) {
+                    analyzeBtn.disabled = isLoading;
+                    analyzeBtn.textContent = isLoading ? 'Analyzing...' : 'Analyze Resume';
+                }
+            }
+
+            function showAiFeedback(feedback) {
+                if (feedbackContent) {
+                    feedbackContent.innerHTML = renderAiFeedback(feedback);
+                }
+                if (aiFeedback) {
+                    aiFeedback.style.display = 'block';
+                }
+            }
+
+            function showMatchResult(result) {
+                if (matchPercentage) {
+                    matchPercentage.textContent = result.matchPercentage;
+                }
+                if (missingKeywords) {
+                    missingKeywords.textContent = result.missingKeywords.join(", ") || "None";
+                }
+                if (matchResult) {
+                    matchResult.style.display = 'block';
+                }
+            }
+
+            function hideResults() {
+                if (aiFeedback) aiFeedback.style.display = 'none';
+                if (matchResult) matchResult.style.display = 'none';
+            }
+
+            function showSuccessText() {
+                if (successText) successText.style.display = 'block';
+            }
+
+            function hideSuccessText() {
+                if (successText) successText.style.display = 'none';
+            }
         });
 
-        // Hide mentor dashboard if user is not a mentor
-        const isMentor = <?php echo $user['is_mentor'] ? 1 : 0; ?>;
-        console.log('Is mentor:', isMentor); // Debug log
-        if (!isMentor) {
-            const mentorNav = document.querySelector('[data-section="mentor-dashboard"]');
-            if (mentorNav) {
-                mentorNav.parentElement.style.display = 'none';
+        // Simple JavaScript for UI interactions (no API calls)
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded'); // Debug log
+
+            // Navigation
+            const navLinks = document.querySelectorAll('.nav-link');
+            const sections = document.querySelectorAll('.section');
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetSection = this.getAttribute('data-section');
+
+                    // Update active nav link
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+
+                    // Show target section
+                    sections.forEach(s => s.classList.remove('active'));
+                    document.getElementById(targetSection).classList.add('active');
+                });
+            });
+
+            // Modal handling
+            const modals = document.querySelectorAll('.modal');
+            const closeButtons = document.querySelectorAll('.close');
+
+            // Bootcamp modal
+            const bootcampBtn = document.getElementById('bootcamp-btn');
+            if (bootcampBtn) {
+                bootcampBtn.addEventListener('click', function() {
+                    console.log('Bootcamp button clicked'); // Debug log
+                    document.getElementById('bootcamp-modal').style.display = 'block';
+                });
             }
-        }
-    });
+
+            // Skill modal
+            const skillBtn = document.getElementById('skill-btn');
+            if (skillBtn) {
+                skillBtn.addEventListener('click', function() {
+                    console.log('Skill button clicked'); // Debug log
+                    document.getElementById('skill-modal').style.display = 'block';
+                });
+            }
+
+            // Certification modal
+            const certBtn = document.getElementById('cert-btn');
+            if (certBtn) {
+                certBtn.addEventListener('click', function() {
+                    console.log('Certification button clicked'); // Debug log
+                    document.getElementById('cert-modal').style.display = 'block';
+                });
+            }
+
+            // Mentor request modal
+            const requestButtons = document.querySelectorAll('.request-btn');
+            requestButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const mentorId = this.getAttribute('data-mentor-id');
+                    const mentorName = this.getAttribute('data-mentor-name');
+
+                    document.getElementById('mentor-id').value = mentorId;
+                    document.getElementById('mentor-name').value = mentorName;
+                    document.getElementById('mentor-modal').style.display = 'block';
+                });
+            });
+
+            // Close modals
+            closeButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    this.closest('.modal').style.display = 'none';
+                });
+            });
+
+            // Close modal when clicking outside
+            window.addEventListener('click', function(e) {
+                modals.forEach(modal => {
+                    if (e.target === modal) {
+                        modal.style.display = 'none';
+                    }
+                });
+            });
+
+            // Hide mentor dashboard if user is not a mentor
+            const isMentor = <?php echo $user['is_mentor'] ? 'true' : 'false'; ?>;
+            console.log('Is mentor:', isMentor); // Debug log
+            if (!isMentor) {
+                const mentorNav = document.querySelector('[data-section="mentor-dashboard"]');
+                if (mentorNav) {
+                    mentorNav.parentElement.style.display = 'none';
+                }
+            }
+        });
     </script>
 
     <?php endif; ?>
 </body>
 </html>
-
-
-
-
-

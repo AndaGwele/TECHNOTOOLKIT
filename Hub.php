@@ -27,7 +27,7 @@ try {
 
   
 
-    $hub_user_id = $user['id'];
+    $hub_user_id = $user_id;
 
     // Handle form submissions
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -922,3 +922,4 @@ if (isset($_GET['logout'])) {
 
 
 </html>
+

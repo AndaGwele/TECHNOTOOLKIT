@@ -391,13 +391,120 @@ if (isset($_GET['logout'])) {
         font-weight: bold;
         color: #007bff;
     }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .section-header h2 {
+        margin: 0;
+    }
+
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        display: flex;
+        align-items: center;
+    }
+
+    .stat-icon {
+        font-size: 2em;
+        margin-right: 15px;
+    }
+
+    .stat-content h3 {
+        margin: 0 0 5px 0;
+        font-size: 14px;
+        color: #666;
+    }
+
+    .stat-number {
+        font-size: 24px;
+        font-weight: bold;
+        margin: 0;
+        color: #333;
+    }
+
+    .activity-section {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+    }
+
+    .empty-state {
+        text-align: center;
+        color: #666;
+        font-style: italic;
+        padding: 20px;
+    }
+
+    .navbar {
+        background: white;
+        padding: 15px 0;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+    }
+
+    .nav-brand h1 {
+        margin: 0;
+        text-align: center;
+    }
+
+    .nav-menu {
+        display: flex;
+        list-style: none;
+        padding: 0;
+        margin: 15px 0 0 0;
+        justify-content: center;
+        gap: 20px;
+    }
+
+    .nav-menu li {
+        margin: 0;
+    }
+
+    .nav-link {
+        text-decoration: none;
+        color: #333;
+        padding: 5px 10px;
+        border-radius: 4px;
+        transition: background-color 0.3s;
+    }
+
+    .nav-link:hover {
+        background-color: #f8f9fa;
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
     </style>
 </head>
 
 <body>
- 
-     
-
+    <?php if ($_SESSION['user_type'] !== 'job-seeker'): ?>
+    <div class="access-denied">
+        <h1>Access Denied</h1>
+        <p>This hub is only available for job seekers.</p>
+        <a href="index.html" class="btn btn-primary">Return to Home</a>
+    </div>
+    <?php else: ?>
+    <div class="container">
         <!-- Navigation -->
         <nav class="navbar">
             <div class="nav-brand">
@@ -415,11 +522,11 @@ if (isset($_GET['logout'])) {
                 <li><a href="#" data-section="profile" class="nav-link">Profile</a></li>
             </ul>
         </nav>
-      <!-- User Info Bar -->
+
+        <!-- User Info Bar -->
         <div class="user-info">
             <div class="user-details">
                 <strong>Welcome, <?php echo htmlspecialchars($user['full_name']); ?></strong>
-                | User ID: <?php echo $hub_user_id; ?>
             </div>
             <a href="?logout=true" class="logout-btn">Logout</a>
         </div>
@@ -433,13 +540,16 @@ if (isset($_GET['logout'])) {
                     ?>
         </div>
         <?php endif; ?>
+
         <!-- Main Content -->
         <main class="main-content">
             <!-- Dashboard Section -->
             <section id="dashboard" class="section active">
                 <div class="section-header">
-                    <h2>Welcome to Your Learning Journey</h2>
-                    <p>Track your progress, find mentors, and master new skills</p>
+                    <div>
+                        <h2>Welcome to Your Learning Journey</h2>
+                        <p>Track your progress, find mentors, and master new skills</p>
+                    </div>
                 </div>
 
                 <div class="dashboard-grid">
@@ -498,8 +608,10 @@ if (isset($_GET['logout'])) {
             <!-- Bootcamps Section -->
             <section id="bootcamps" class="section">
                 <div class="section-header">
-                    <h2>Personalized Bootcamps</h2>
-                    <p>Intensive learning programs tailored to your goals</p>
+                    <div>
+                        <h2>Personalized Bootcamps</h2>
+                        <p>Intensive learning programs tailored to your goals</p>
+                    </div>
                     <button class="btn btn-primary" id="bootcamp-btn">+ Create Bootcamp</button>
                 </div>
 
@@ -540,8 +652,7 @@ if (isset($_GET['logout'])) {
                             </div>
                             <div class="form-group">
                                 <label for="bootcamp-description">Description</label>
-                                <textarea id="bootcamp-description" name="bootcamp_description" rows="4"
-                                    required></textarea>
+                                <textarea id="bootcamp-description" name="bootcamp_description" rows="4" required></textarea>
                             </div>
                             <div class="form-group">
                                 <label for="bootcamp-duration">Duration (weeks)</label>
@@ -561,7 +672,157 @@ if (isset($_GET['logout'])) {
                 </div>
             </section>
 
-            <!-- Mentorship Section -->
+            <!-- Skills Section -->
+            <section id="skills" class="section">
+                <div class="section-header">
+                    <div>
+                        <h2>Skill Tracking</h2>
+                        <p>Monitor your skill development and progress</p>
+                    </div>
+                    <button class="btn btn-primary" id="skill-btn">+ Add Skill</button>
+                </div>
+
+                <div class="skills-container">
+                    <div class="skills-list" id="skills-list">
+                        <?php if (empty($skills)): ?>
+                        <p class="empty-state">No skills tracked yet. Add your first skill!</p>
+                        <?php else: ?>
+                        <?php foreach ($skills as $skill): ?>
+                        <div class="card">
+                            <div class="card-header">
+                                <h3><?php echo htmlspecialchars($skill['name']); ?></h3>
+                                <form method="post" style="display:inline;">
+                                    <input type="hidden" name="action" value="delete_skill">
+                                    <input type="hidden" name="skill_id" value="<?php echo $skill['id']; ?>">
+                                    <button type="submit" class="delete-btn"
+                                        onclick="return confirm('Are you sure you want to delete this skill?')">Delete</button>
+                                </form>
+                            </div>
+                            <p><strong>Category:</strong>
+                                <?php echo ucfirst(str_replace('-', ' ', $skill['category'])); ?></p>
+                            <p><strong>Level:</strong> <?php echo ucfirst($skill['level']); ?></p>
+                            <?php if (!empty($skill['description'])): ?>
+                            <p><?php echo htmlspecialchars($skill['description']); ?></p>
+                            <?php endif; ?>
+                        </div>
+                        <?php endforeach; ?>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
+                <!-- Add Skill Modal -->
+                <div id="skill-modal" class="modal">
+                    <div class="modal-content">
+                        <span class="close">&times;</span>
+                        <h3>Add New Skill</h3>
+                        <form method="post">
+                            <input type="hidden" name="action" value="create_skill">
+                            <div class="form-group">
+                                <label for="skill-name">Skill Name</label>
+                                <input type="text" id="skill-name" name="skill_name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="skill-category">Category</label>
+                                <select id="skill-category" name="skill_category" required>
+                                    <option value="technical">Technical</option>
+                                    <option value="soft-skills">Soft Skills</option>
+                                    <option value="business">Business</option>
+                                    <option value="creative">Creative</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="skill-level">Current Level</label>
+                                <select id="skill-level" name="skill_level" required>
+                                    <option value="beginner">Beginner</option>
+                                    <option value="intermediate">Intermediate</option>
+                                    <option value="advanced">Advanced</option>
+                                    <option value="expert">Expert</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="description">Description</label>
+                                <input type="text" id="description" name="description">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Add Skill</button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Certifications Section -->
+            <section id="certifications" class="section">
+                <div class="section-header">
+                    <div>
+                        <h2>Certifications</h2>
+                        <p>Showcase your verified credentials</p>
+                    </div>
+                    <button class="btn btn-primary" id="cert-btn">+ Add Certification</button>
+                </div>
+
+                <div class="certifications-container" id="certifications-list">
+                    <?php if (empty($certifications)): ?>
+                    <p class="empty-state">No certifications yet. Earn your first one!</p>
+                    <?php else: ?>
+                    <?php foreach ($certifications as $cert): ?>
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><?php echo htmlspecialchars($cert['name']); ?></h3>
+                            <form method="post" style="display:inline;">
+                                <input type="hidden" name="action" value="delete_certification">
+                                <input type="hidden" name="certification_id" value="<?php echo $cert['id']; ?>">
+                                <button type="submit" class="delete-btn"
+                                    onclick="return confirm('Are you sure you want to delete this certification?')">Delete</button>
+                            </form>
+                        </div>
+                        <p><strong>Issuer:</strong> <?php echo htmlspecialchars($cert['issuer']); ?></p>
+                        <p><strong>Date Earned:</strong> <?php echo date('M j, Y', strtotime($cert['date_earned'])); ?></p>
+                        <?php if (!empty($cert['credential_id'])): ?>
+                        <p><strong>Credential ID:</strong> <?php echo htmlspecialchars($cert['credential_id']); ?></p>
+                        <?php endif; ?>
+                        <?php if (!empty($cert['credential_url'])): ?>
+                        <p><strong>Credential URL:</strong> <a href="<?php echo htmlspecialchars($cert['credential_url']); ?>" target="_blank">View</a></p>
+                        <?php endif; ?>
+                    </div>
+                    <?php endforeach; ?>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Add Certification Modal -->
+                <div id="cert-modal" class="modal">
+                    <div class="modal-content">
+                        <span class="close">&times;</span>
+                        <h3>Add Certification</h3>
+                        <form method="post">
+                            <input type="hidden" name="action" value="create_certification">
+                            <div class="form-group">
+                                <label for="cert-name">Certification Name</label>
+                                <input type="text" id="cert-name" name="cert_name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="cert-issuer">Issuing Organization</label>
+                                <input type="text" id="cert-issuer" name="cert_issuer" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="cert-date">Date Earned</label>
+                                <input type="date" id="cert-date" name="cert_date" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="cert-credential-id">Credential ID</label>
+                                <input type="text" id="cert-credential-id" name="cert_credential_id">
+                            </div>
+                            <div class="form-group">
+                                <label for="cert-url">Credential URL</label>
+                                <input type="url" id="cert-url" name="cert_url">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Add Certification</button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Keep the rest of your sections (Mentorship, Profile, Mentor Dashboard) the same -->
+            <!-- ... -->
+                         <!-- Mentorship Section -->
             <section id="mentorship" class="section">
                 <div class="section-header">
                     <h2>Find Your Mentor</h2>
@@ -855,13 +1116,16 @@ if (isset($_GET['logout'])) {
                         <p class="empty-state">No active mentees yet</p>
                     </div>
                 </div>
-            </section>
+
+
         </main>
     </div>
 
     <script>
     // Simple JavaScript for UI interactions (no API calls)
     document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM loaded'); // Debug log
+
         // Navigation
         const navLinks = document.querySelectorAll('.nav-link');
         const sections = document.querySelectorAll('.section');
@@ -886,19 +1150,31 @@ if (isset($_GET['logout'])) {
         const closeButtons = document.querySelectorAll('.close');
 
         // Bootcamp modal
-        document.getElementById('bootcamp-btn').addEventListener('click', function() {
-            document.getElementById('bootcamp-modal').style.display = 'block';
-        });
+        const bootcampBtn = document.getElementById('bootcamp-btn');
+        if (bootcampBtn) {
+            bootcampBtn.addEventListener('click', function() {
+                console.log('Bootcamp button clicked'); // Debug log
+                document.getElementById('bootcamp-modal').style.display = 'block';
+            });
+        }
 
         // Skill modal
-        document.getElementById('skill-btn').addEventListener('click', function() {
-            document.getElementById('skill-modal').style.display = 'block';
-        });
+        const skillBtn = document.getElementById('skill-btn');
+        if (skillBtn) {
+            skillBtn.addEventListener('click', function() {
+                console.log('Skill button clicked'); // Debug log
+                document.getElementById('skill-modal').style.display = 'block';
+            });
+        }
 
         // Certification modal
-        document.getElementById('cert-btn').addEventListener('click', function() {
-            document.getElementById('cert-modal').style.display = 'block';
-        });
+        const certBtn = document.getElementById('cert-btn');
+        if (certBtn) {
+            certBtn.addEventListener('click', function() {
+                console.log('Certification button clicked'); // Debug log
+                document.getElementById('cert-modal').style.display = 'block';
+            });
+        }
 
         // Mentor request modal
         const requestButtons = document.querySelectorAll('.request-btn');
@@ -930,7 +1206,8 @@ if (isset($_GET['logout'])) {
         });
 
         // Hide mentor dashboard if user is not a mentor
-        const isMentor = <?php echo $user['is_mentor'] ? 'true' : 'false'; ?>;
+        const isMentor = <?php echo $user['is_mentor'] ? 1 : 0; ?>;
+        console.log('Is mentor:', isMentor); // Debug log
         if (!isMentor) {
             const mentorNav = document.querySelector('[data-section="mentor-dashboard"]');
             if (mentorNav) {
@@ -940,15 +1217,6 @@ if (isset($_GET['logout'])) {
     });
     </script>
 
-   
+    <?php endif; ?>
 </body>
-
-
 </html>
-
-
-
-
-
-
-

@@ -74,17 +74,8 @@ try {
     $_SESSION['user_type'] = $user_type;
 
     // Return success response
-    echo json_encode([
-        'success' => true,
-        'message' => 'User registered successfully!',
-        'data' => [
-            'id' => $user_id,
-            'full_name' => $full_name,
-            'email' => $email,
-            'user_type' => $user_type
-        ]
-    ]);
-
+   header("Location: signupLogin.html");
+exit();
 } catch (Exception $e) {
     echo json_encode([
         'success' => false,
@@ -93,3 +84,4 @@ try {
 }
 
 ?>
+

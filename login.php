@@ -63,7 +63,12 @@ try {
     if ($user['user_type'] == "job-seeker") {
         header('Location: Hub.php');
         exit(); // Important: stop execution after redirect
-    } else {
+    } else if($user['user_type'] == "entrepreneur"){
+       header('Location: smart_inv.php');
+        exit();
+
+    }
+    else {
         // For other user types, return JSON response
         echo json_encode([
             'success' => true,
@@ -84,3 +89,4 @@ try {
     ]);
 }
 ?>
+

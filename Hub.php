@@ -1263,15 +1263,61 @@ if (isset($_GET['logout'])) {
                     </div>
                 </div>
                 <!-- CVision Modal with iframe -->
-<div id="cvision-iframe-modal" class="modal">
-    <div class="modal-content" style="width: 95%; max-width: 1200px; height: 90vh;">
+<!-- CVision Modal -->
+<div id="cvision-modal" class="modal">
+    <div class="modal-content" style="width: 95%; max-width: 1000px; max-height: 90vh; overflow-y: auto;">
         <span class="close">&times;</span>
-        <iframe 
-            id="cvision-frame"
-            src="CVision.html" 
-            style="width: 100%; height: 100%; border: none; border-radius: 8px;"
-            title="CV Analysis Tool"
-        ></iframe>
+        
+        <div class="form-card">
+            <div class="card-header">
+                <h2 style="margin: 0;">Resume Analysis</h2>
+            </div>
+
+            <div class="form-group">
+                <label for="cvision-document-upload">Upload Your Resume (PDF):</label>
+                <input type="file" id="cvision-document-upload" accept=".pdf" />
+            </div>
+
+            <div class="form-group">
+                <label for="cvision-job-description">Job Description:</label>
+                <textarea
+                    id="cvision-job-description"
+                    placeholder="Paste the job description here..."
+                    rows="6"></textarea>
+            </div>
+
+            <button type="button" class="btn btn-primary" id="cvision-analyze-btn">
+                Analyze Resume
+            </button>
+        </div>
+
+        <div id="cvision-loading" class="loading" style="display: none;">
+            <p>Processing your resume and analyzing against job description...</p>
+        </div>
+
+        <!-- AI Feedback Results -->
+        <div id="cvision-ai-feedback" class="result-card" style="display: none;">
+            <div class="card-header">
+                <h3>AI Analysis & Recommendations</h3>
+            </div>
+            <div id="cvision-feedback-content"></div>
+        </div>
+
+        <!-- Fallback Keyword Match -->
+        <div id="cvision-match-result" class="result-card" style="display: none;">
+            <div class="card-header">
+                <h3>Basic Keyword Analysis</h3>
+            </div>
+            <div class="match-result">
+                <p><strong>AI unavailable. Showing basic keyword match analysis.</strong></p>
+                <p><strong>Match Percentage:</strong> <span id="cvision-match-percentage"></span>%</p>
+                <p><strong>Missing Keywords:</strong> <span id="cvision-missing-keywords"></span></p>
+            </div>
+        </div>
+
+        <div id="cvision-success-text" class="success-text" style="display: none;">
+            ✅ Resume text successfully extracted and ready for analysis
+        </div>
     </div>
 </div>
 
@@ -1281,31 +1327,281 @@ if (isset($_GET['logout'])) {
 
     <script>
         // Iframe Modal Functionality
+// CVision Modal Functionality
 document.addEventListener('DOMContentLoaded', function() {
-    const cvisionIframeModal = document.getElementById('cvision-iframe-modal');
-    const cvisionFrame = document.getElementById('cvision-frame');
-    const openCvisionIframeBtn = document.getElementById('open-cvision-iframe');
+    const cvisionModal = document.getElementById('cvision-modal');
+    const openCvisionBtn = document.getElementById('open-cvision-modal');
     
-    if (openCvisionIframeBtn) {
-        openCvisionIframeBtn.addEventListener('click', function(e) {
+    // CVision elements
+    const documentUpload = document.getElementById('cvision-document-upload');
+    const jobDescription = document.getElementById('cvision-job-description');
+    const analyzeBtn = document.getElementById('cvision-analyze-btn');
+    const loading = document.getElementById('cvision-loading');
+    const aiFeedback = document.getElementById('cvision-ai-feedback');
+    const feedbackContent = document.getElementById('cvision-feedback-content');
+    const matchResult = document.getElementById('cvision-match-result');
+    const matchPercentage = document.getElementById('cvision-match-percentage');
+    const missingKeywords = document.getElementById('cvision-missing-keywords');
+    const successText = document.getElementById('cvision-success-text');
+    
+    let cvText = '';
+    let pdfjsLib = null;
+
+    // Load pdf.js dynamically
+    const script = document.createElement("script");
+    script.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js";
+    script.onload = () => {
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+            "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
+        pdfjsLib = window.pdfjsLib;
+        console.log("✅ pdf.js loaded for CVision modal");
+    };
+    document.head.appendChild(script);
+
+    // Open modal
+    if (openCvisionBtn) {
+        openCvisionBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            cvisionIframeModal.style.display = 'block';
-            // Reload the iframe to ensure fresh state
-            cvisionFrame.src = cvisionFrame.src;
+            cvisionModal.style.display = 'block';
+            resetCVisionForm();
         });
     }
     
     // Close modal when clicking X
-    cvisionIframeModal.querySelector('.close').addEventListener('click', function() {
-        cvisionIframeModal.style.display = 'none';
+    cvisionModal.querySelector('.close').addEventListener('click', function() {
+        cvisionModal.style.display = 'none';
     });
     
     // Close modal when clicking outside
     window.addEventListener('click', function(e) {
-        if (e.target === cvisionIframeModal) {
-            cvisionIframeModal.style.display = 'none';
+        if (e.target === cvisionModal) {
+            cvisionModal.style.display = 'none';
         }
     });
+    
+    // Close modal with Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && cvisionModal.style.display === 'block') {
+            cvisionModal.style.display = 'none';
+        }
+    });
+
+    // CVision functionality
+    if (documentUpload && analyzeBtn) {
+        documentUpload.addEventListener('change', handleFileUpload);
+        analyzeBtn.addEventListener('click', handleAnalyze);
+    }
+
+    function resetCVisionForm() {
+        cvText = '';
+        if (documentUpload) documentUpload.value = '';
+        if (jobDescription) jobDescription.value = '';
+        if (aiFeedback) aiFeedback.style.display = 'none';
+        if (matchResult) matchResult.style.display = 'none';
+        if (successText) successText.style.display = 'none';
+        if (loading) loading.style.display = 'none';
+        if (analyzeBtn) {
+            analyzeBtn.disabled = false;
+            analyzeBtn.textContent = 'Analyze Resume';
+        }
+    }
+
+    async function handleFileUpload(event) {
+        if (!pdfjsLib) {
+            alert("PDF processor is still loading. Please wait.");
+            return;
+        }
+        
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        if (file.type !== 'application/pdf') {
+            alert('Please upload a PDF file only.');
+            return;
+        }
+
+        setLoading(true);
+        hideResults();
+        
+        try {
+            const fileReader = new FileReader();
+            fileReader.onload = async function () {
+                const typedArray = new Uint8Array(this.result);
+                const pdf = await pdfjsLib.getDocument(typedArray).promise;
+
+                let fullText = "";
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const textContent = await page.getTextContent();
+                    const pageText = textContent.items.map((item) => item.str).join(" ");
+                    fullText += pageText + "\n";
+                }
+
+                cvText = fullText;
+                setLoading(false);
+                showSuccessText();
+            };
+            fileReader.readAsArrayBuffer(file);
+        } catch (err) {
+            console.error(err);
+            alert('Failed to extract text from PDF.');
+            setLoading(false);
+        }
+    }
+
+    function preprocessText(text) {
+        const stopwords = [
+            "a","an","the","and","or","but","if","then","else","for","of","on","in","with",
+            "to","from","by","as","at","be","is","are","was","were","this","that","these",
+            "those","such","it","its","i","you","he","she","they","we"
+        ];
+        return text
+            .toLowerCase()
+            .replace(/[^a-z0-9\s]/g, "")
+            .split(/\s+/)
+            .filter(Boolean)
+            .filter((word) => !stopwords.includes(word));
+    }
+
+    function computeKeywordMatch(cv, job) {
+        const cvWords = preprocessText(cv);
+        const jobWords = preprocessText(job);
+        const jobWordSet = Array.from(new Set(jobWords));
+
+        const foundKeywords = [];
+        const missingKeywords = [];
+
+        jobWordSet.forEach((word) => {
+            if (cvWords.includes(word)) foundKeywords.push(word);
+            else missingKeywords.push(word);
+        });
+
+        const matchPercentage = Math.round(
+            (foundKeywords.length / jobWordSet.length) * 100
+        );
+
+        return { matchPercentage, missingKeywords, foundKeywords };
+    }
+
+    async function handleAnalyze() {
+        if (!cvText) {
+            alert('Please upload a resume first.');
+            return;
+        }
+        
+        if (!jobDescription.value.trim()) {
+            alert('Please enter a job description.');
+            return;
+        }
+
+        setLoading(true);
+        hideResults();
+        hideSuccessText();
+
+        const API_KEY = "AIzaSyDhdk2VpT0T2l_f0ZXNAEr0_Wf5WYYc6d0";
+        const prompt = `
+You are an expert resume optimizer and ATS system.
+Given the CV text and job description below, provide a concise, structured analysis:
+
+1. Strengths: top skills/keywords the CV matches (label as **STRENGTHS**)
+2. Weaknesses: missing important skills/keywords (label as **WEAKNESSES**)
+3. Improvements: 2–3 actionable steps to increase ATS compatibility (label as **IMPROVEMENTS**)
+4. Summarize whether this CV is a strong, moderate, or weak match overall (label as **MATCH SCORE**)
+
+CV TEXT:
+${cvText}
+
+JOB DESCRIPTION:
+${jobDescription.value}
+`;
+
+        try {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [{
+                            text: prompt
+                        }]
+                    }]
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`API request failed with status ${response.status}`);
+            }
+
+            const data = await response.json();
+            const feedback = data.candidates[0].content.parts[0].text;
+            showAiFeedback(feedback);
+        } catch (err) {
+            console.error("Gemini API failed:", err);
+            const localMatch = computeKeywordMatch(cvText, jobDescription.value);
+            showMatchResult(localMatch);
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    function renderAiFeedback(feedback) {
+        if (!feedback) return '<p class="empty-state">No feedback generated.</p>';
+        const lines = feedback.split("\n");
+        return lines.map((line, idx) => {
+            if (line.toUpperCase().includes("STRENGTH")) return `<p class="feedback-strength">${line}</p>`;
+            if (line.toUpperCase().includes("WEAKNESS")) return `<p class="feedback-weakness">${line}</p>`;
+            if (line.toUpperCase().includes("IMPROVEMENT")) return `<p class="feedback-improvement">${line}</p>`;
+            if (line.trim() === "") return `<br>`;
+            return `<p>${line}</p>`;
+        }).join('');
+    }
+
+    // UI Helper Functions
+    function setLoading(isLoading) {
+        if (loading) {
+            loading.style.display = isLoading ? 'block' : 'none';
+        }
+        if (analyzeBtn) {
+            analyzeBtn.disabled = isLoading;
+            analyzeBtn.textContent = isLoading ? 'Analyzing...' : 'Analyze Resume';
+        }
+    }
+
+    function showAiFeedback(feedback) {
+        if (feedbackContent) {
+            feedbackContent.innerHTML = renderAiFeedback(feedback);
+        }
+        if (aiFeedback) {
+            aiFeedback.style.display = 'block';
+        }
+    }
+
+    function showMatchResult(result) {
+        if (matchPercentage) {
+            matchPercentage.textContent = result.matchPercentage;
+        }
+        if (missingKeywords) {
+            missingKeywords.textContent = result.missingKeywords.join(", ") || "None";
+        }
+        if (matchResult) {
+            matchResult.style.display = 'block';
+        }
+    }
+
+    function hideResults() {
+        if (aiFeedback) aiFeedback.style.display = 'none';
+        if (matchResult) matchResult.style.display = 'none';
+    }
+
+    function showSuccessText() {
+        if (successText) successText.style.display = 'block';
+    }
+
+    function hideSuccessText() {
+        if (successText) successText.style.display = 'none';
+    }
 });
     // Simple JavaScript for UI interactions (no API calls)
     document.addEventListener('DOMContentLoaded', function() {
@@ -1405,6 +1701,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <?php endif; ?>
 </body>
 </html>
+
 
 
 

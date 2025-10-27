@@ -25,9 +25,7 @@ try {
     $stmt->execute([$user_id]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if (!$user) {  //extra check
-        die("User not found.");
-    }
+  
 
     $hub_user_id = $user['id'];
 
@@ -921,5 +919,6 @@ if (isset($_GET['logout'])) {
 
     <?php endif; ?>
 </body>
+
 
 </html>

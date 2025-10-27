@@ -826,24 +826,31 @@ if (isset($_GET['logout'])) {
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded - initializing JavaScript functionality');
+            
             // Tab functionality
             const tabs = document.querySelectorAll('.nav-tab');
             const tabContents = document.querySelectorAll('.tab-content');
 
-            tabs.forEach(tab => {
-                tab.addEventListener('click', function () {
-                    const targetTab = this.getAttribute('data-tab');
+            console.log('Found tabs:', tabs.length);
+            console.log('Found tab contents:', tabContents.length);
 
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    console.log('Tab clicked:', this.getAttribute('data-tab'));
+                    const targetTab = this.getAttribute('data-tab');
+                    
                     // Update active tab
                     tabs.forEach(t => t.classList.remove('active'));
                     this.classList.add('active');
-
+                    
                     // Show target content
                     tabContents.forEach(content => {
                         content.classList.remove('active');
                         if (content.id === targetTab) {
                             content.classList.add('active');
+                            console.log('Showing tab:', content.id);
                         }
                     });
                 });
@@ -853,21 +860,32 @@ if (isset($_GET['logout'])) {
             const modals = document.querySelectorAll('.modal');
             const closeButtons = document.querySelectorAll('.close');
 
+            console.log('Found modals:', modals.length);
+            console.log('Found close buttons:', closeButtons.length);
+
             // Inventory modal
             const inventoryBtn = document.getElementById('add-inventory-btn');
+            console.log('Inventory button:', inventoryBtn);
+            
             if (inventoryBtn) {
-                inventoryBtn.addEventListener('click', function () {
+                inventoryBtn.addEventListener('click', function() {
+                    console.log('Inventory button clicked');
                     document.getElementById('inventory-modal').style.display = 'block';
                 });
             }
 
             // Candidate modal
             const candidateBtns = document.querySelectorAll('.add-candidate-btn');
+            console.log('Candidate buttons found:', candidateBtns.length);
+            
             candidateBtns.forEach(btn => {
-                btn.addEventListener('click', function () {
+                btn.addEventListener('click', function() {
+                    console.log('Candidate button clicked');
                     const jobseekerId = this.getAttribute('data-jobseeker-id');
                     const jobseekerName = this.getAttribute('data-jobseeker-name');
-
+                    
+                    console.log('Jobseeker ID:', jobseekerId, 'Name:', jobseekerName);
+                    
                     document.getElementById('jobseeker-id').value = jobseekerId;
                     document.getElementById('candidate-name').value = jobseekerName;
                     document.getElementById('candidate-modal').style.display = 'block';
@@ -876,19 +894,26 @@ if (isset($_GET['logout'])) {
 
             // Close modals
             closeButtons.forEach(button => {
-                button.addEventListener('click', function () {
+                button.addEventListener('click', function() {
+                    console.log('Close button clicked');
                     this.closest('.modal').style.display = 'none';
                 });
             });
 
             // Close modal when clicking outside
-            window.addEventListener('click', function (e) {
+            window.addEventListener('click', function(e) {
                 modals.forEach(modal => {
                     if (e.target === modal) {
+                        console.log('Clicked outside modal - closing');
                         modal.style.display = 'none';
                     }
                 });
             });
+
+            // Debug: Log all elements with specific classes
+            console.log('All elements with modal class:', document.querySelectorAll('.modal'));
+            console.log('All elements with nav-tab class:', document.querySelectorAll('.nav-tab'));
+            console.log('All elements with add-candidate-btn class:', document.querySelectorAll('.add-candidate-btn'));
         });
     </script>
 </body>

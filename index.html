@@ -136,6 +136,7 @@
         }
 
         .navbar {
+            position: relative;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -557,8 +558,56 @@
 
         /* Responsive Design */
         @media (max-width: 768px) {
-            .nav-links {
-                display: none;
+
+        .nav-links {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        width: 100%;
+        background: white;
+        box-shadow: var(--shadow);
+        border-radius: 0 0 var(--radius) var(--radius);
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 0.5rem 0;
+        z-index: 999;
+
+        /*  animation setup */
+        max-height: 0;
+        opacity: 0;
+        overflow: hidden;
+        transform: translateY(-10px);
+        transition:
+            max-height 0.4s ease,
+            opacity 0.3s ease,
+            transform 0.4s ease;
+        }
+
+        /* When open, smoothly roll down */
+        .nav-links.open {
+        display: flex;
+        max-height: 300px;
+        opacity: 1;
+        transform: translateY(0);
+        }
+
+
+            /* visible when open (JS will toggle this class) */
+            .nav-links.open {
+                display: flex;
+            }
+
+            /* make nav items full-width with comfortable touch target */
+            .nav-links li {
+                margin: 0;
+                width: 100%;
+            }
+
+            .nav-links a {
+                display: block;
+                width: 100%;
+                padding: 0.75rem 1.5rem;
             }
 
             .mobile-menu-btn {
@@ -1000,11 +1049,21 @@
         </footer>
 
         <script>
-        // Simple mobile menu toggle
-        document.querySelector('.mobile-menu-btn').addEventListener('click', function() {
-            const navLinks = document.querySelector('.nav-links');
-            navLinks.style.display = navLinks.style.display === 'flex' ? 'none' : 'flex';
+        // Mobile menu toggle: toggles .open which shows the absolutely-positioned dropdown
+        const mobileBtn = document.querySelector('.mobile-menu-btn');
+        const navLinks = document.querySelector('.nav-links');
+
+        mobileBtn.addEventListener('click', function() {
+            navLinks.classList.toggle('open');
         });
-    </script>
+
+        // Optional: click outside to close
+        document.addEventListener('click', function(e) {
+            if (!navLinks.contains(e.target) && !mobileBtn.contains(e.target)) {
+            navLinks.classList.remove('open');
+            }
+        });
+        </script>
     </body>
+
 </html>

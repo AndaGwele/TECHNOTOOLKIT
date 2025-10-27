@@ -575,9 +575,9 @@ if (isset($_GET['logout'])) {
 
         <!-- Navigation Tabs -->
         <div class="nav-tabs">
-            <button class="nav-tab active" data-tab="inventory">📦 Inventory Management</button>
-            <button class="nav-tab" data-tab="talent">🎯 Talent Discovery</button>
-            <button class="nav-tab" data-tab="potential">⭐ Potential Candidates</button>
+<button class="nav-tab active" onclick="switchTab('inventory')">📦 Inventory Management</button>
+<button class="nav-tab" onclick="switchTab('talent')">🎯 Talent Discovery</button>
+<button class="nav-tab" onclick="switchTab('potential')">⭐ Potential Candidates</button>
         </div>
 
         <!-- Inventory Management Tab -->
@@ -585,7 +585,7 @@ if (isset($_GET['logout'])) {
             <div class="section">
                 <div class="section-header">
                     <h2>Smart Inventory Management</h2>
-                    <button class="btn btn-primary" id="add-inventory-btn">+ Add Inventory Item</button>
+                    <button class="btn btn-primary" onclick="openInventoryModal()">+ Add Inventory Item</button>
                 </div>
 
                 <?php if (empty($inventory)): ?>
@@ -670,11 +670,11 @@ if (isset($_GET['logout'])) {
                                             <p><?php echo htmlspecialchars($jobseeker['bio']); ?></p>
                                         <?php endif; ?>
                                     </div>
-                                    <button class="btn btn-success add-candidate-btn"
-                                        data-jobseeker-id="<?php echo $jobseeker['id']; ?>"
-                                        data-jobseeker-name="<?php echo htmlspecialchars($jobseeker['full_name']); ?>">
-                                        Add to Potential List
-                                    </button>
+                                   <!-- Update the Add Candidate buttons -->
+<button class="btn btn-success add-candidate-btn" 
+        onclick="openCandidateModal('<?php echo $jobseeker['id']; ?>', '<?php echo htmlspecialchars($jobseeker['full_name']); ?>')">
+    Add to Potential List
+</button>
                                 </div>
 
                                 <?php if (!empty($jobseeker['skills'])): ?>
@@ -768,7 +768,7 @@ if (isset($_GET['logout'])) {
     <!-- Add Inventory Modal -->
     <div id="inventory-modal" class="modal">
         <div class="modal-content">
-            <span class="close">&times;</span>
+            <<span class="close" onclick="closeModal('inventory-modal')">&times;</span>
             <h3>Add Inventory Item</h3>
             <form method="post">
                 <input type="hidden" name="action" value="update_inventory">
@@ -807,7 +807,7 @@ if (isset($_GET['logout'])) {
     <!-- Add Candidate Modal -->
     <div id="candidate-modal" class="modal">
         <div class="modal-content">
-            <span class="close">&times;</span>
+           <span class="close" onclick="closeModal('candidate-modal')">&times;</span>
             <h3>Add to Potential Candidates</h3>
             <form method="post">
                 <input type="hidden" name="action" value="add_to_potential_list">
@@ -825,97 +825,52 @@ if (isset($_GET['logout'])) {
         </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM loaded - initializing JavaScript functionality');
-            
-            // Tab functionality
-            const tabs = document.querySelectorAll('.nav-tab');
-            const tabContents = document.querySelectorAll('.tab-content');
-
-            console.log('Found tabs:', tabs.length);
-            console.log('Found tab contents:', tabContents.length);
-
-            tabs.forEach(tab => {
-                tab.addEventListener('click', function() {
-                    console.log('Tab clicked:', this.getAttribute('data-tab'));
-                    const targetTab = this.getAttribute('data-tab');
-                    
-                    // Update active tab
-                    tabs.forEach(t => t.classList.remove('active'));
-                    this.classList.add('active');
-                    
-                    // Show target content
-                    tabContents.forEach(content => {
-                        content.classList.remove('active');
-                        if (content.id === targetTab) {
-                            content.classList.add('active');
-                            console.log('Showing tab:', content.id);
-                        }
-                    });
-                });
-            });
-
-            // Modal functionality
-            const modals = document.querySelectorAll('.modal');
-            const closeButtons = document.querySelectorAll('.close');
-
-            console.log('Found modals:', modals.length);
-            console.log('Found close buttons:', closeButtons.length);
-
-            // Inventory modal
-            const inventoryBtn = document.getElementById('add-inventory-btn');
-            console.log('Inventory button:', inventoryBtn);
-            
-            if (inventoryBtn) {
-                inventoryBtn.addEventListener('click', function() {
-                    console.log('Inventory button clicked');
-                    document.getElementById('inventory-modal').style.display = 'block';
-                });
-            }
-
-            // Candidate modal
-            const candidateBtns = document.querySelectorAll('.add-candidate-btn');
-            console.log('Candidate buttons found:', candidateBtns.length);
-            
-            candidateBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    console.log('Candidate button clicked');
-                    const jobseekerId = this.getAttribute('data-jobseeker-id');
-                    const jobseekerName = this.getAttribute('data-jobseeker-name');
-                    
-                    console.log('Jobseeker ID:', jobseekerId, 'Name:', jobseekerName);
-                    
-                    document.getElementById('jobseeker-id').value = jobseekerId;
-                    document.getElementById('candidate-name').value = jobseekerName;
-                    document.getElementById('candidate-modal').style.display = 'block';
-                });
-            });
-
-            // Close modals
-            closeButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    console.log('Close button clicked');
-                    this.closest('.modal').style.display = 'none';
-                });
-            });
-
-            // Close modal when clicking outside
-            window.addEventListener('click', function(e) {
-                modals.forEach(modal => {
-                    if (e.target === modal) {
-                        console.log('Clicked outside modal - closing');
-                        modal.style.display = 'none';
-                    }
-                });
-            });
-
-            // Debug: Log all elements with specific classes
-            console.log('All elements with modal class:', document.querySelectorAll('.modal'));
-            console.log('All elements with nav-tab class:', document.querySelectorAll('.nav-tab'));
-            console.log('All elements with add-candidate-btn class:', document.querySelectorAll('.add-candidate-btn'));
+<script>
+    // Simple inline event handlers
+    function openInventoryModal() {
+        console.log('Opening inventory modal');
+        document.getElementById('inventory-modal').style.display = 'block';
+    }
+    
+    function openCandidateModal(jobseekerId, jobseekerName) {
+        console.log('Opening candidate modal for:', jobseekerName);
+        document.getElementById('jobseeker-id').value = jobseekerId;
+        document.getElementById('candidate-name').value = jobseekerName;
+        document.getElementById('candidate-modal').style.display = 'block';
+    }
+    
+    function closeModal(modalId) {
+        document.getElementById(modalId).style.display = 'none';
+    }
+    
+    function switchTab(tabName) {
+        // Hide all tab contents
+        document.querySelectorAll('.tab-content').forEach(tab => {
+            tab.classList.remove('active');
         });
-    </script>
+        
+        // Remove active class from all tabs
+        document.querySelectorAll('.nav-tab').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        
+        // Show selected tab content
+        document.getElementById(tabName).classList.add('active');
+        
+        // Activate selected tab
+        document.querySelector(`.nav-tab[data-tab="${tabName}"]`).classList.add('active');
+    }
+
+    // Close modal when clicking outside
+    window.addEventListener('click', function(e) {
+        if (e.target.classList.contains('modal')) {
+            e.target.style.display = 'none';
+        }
+    });
+    
+    console.log('JavaScript loaded successfully');
+</script>
 </body>
 
 </html>
+

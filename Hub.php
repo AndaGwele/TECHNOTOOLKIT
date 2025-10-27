@@ -27,19 +27,16 @@ $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$user) {
     // This means it's a new user, insert their data into hub_users
-    try {
-        // First, get the user's basic info from the users table
-        $stmt = $conn->prepare("SELECT full_name, email, user_type FROM users WHERE id = ?");
-        $stmt->execute([$user_id]);
-        $user_data = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-        if (!$user_data) {
-            throw new Exception("User data not found in main users table");
-        }
-        
+    
+    // First, get the user's basic info from the users table
+    $stmt = $conn->prepare("SELECT full_name, email, user_type FROM users WHERE id = ?");
+    $stmt->execute([$user_id]);
+    $user_data = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if ($user_data) {
         // Insert the new user into hub_users table
-        $stmt = $conn->prepare("INSERT INTO hub_users (user_id, full_name, email, user_type, is_mentor, created_at) VALUES (?, ?, ?, ?, ?, NOW())");
-        $success = $stmt->execute([
+        $stmt = $conn->prepare("INSERT INTO hub_users (user_id, full_name, email, user_type, is_mentor) VALUES (?, ?, ?, ?, ?)");
+        $stmt->execute([
             $user_id,
             $user_data['full_name'],
             $user_data['email'],
@@ -47,32 +44,18 @@ if (!$user) {
             false  // Default to not being a mentor initially
         ]);
         
-        if (!$success) {
-            throw new Exception("Failed to create hub user profile");
-        }
-        
         // Fetch the newly created user record
         $stmt = $conn->prepare("SELECT * FROM hub_users WHERE user_id = ?");
         $stmt->execute([$user_id]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
         
-        if (!$user) {
-            throw new Exception("Failed to retrieve newly created hub user");
-        }
-        
-        // Set welcome message
+        // You can also add a welcome message or initial setup here
         $_SESSION['message'] = "Welcome to your learning hub! Get started by adding your skills and goals.";
-        
-    } catch (Exception $e) {
-        // Log the error and handle gracefully
-        error_log("Hub user creation error: " . $e->getMessage());
-        die("Error setting up your profile. Please contact support.");
     }
 }
 
 // Now $user contains the hub user data (either existing or newly created)
 $hub_user_id = $user['id'];
-    $hub_user_id = $user_id;
 
     // Handle form submissions
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -967,5 +950,6 @@ if (isset($_GET['logout'])) {
 
 
 </html>
+
 
 

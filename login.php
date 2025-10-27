@@ -60,16 +60,20 @@ try {
     $_SESSION['user_type'] = $user['user_type'];
 
     // Return success response
-    echo json_encode([
-        'success' => true,
-        'message' => 'Login successful!',
-        'data' => [
-            'id' => $user['id'],
-            'full_name' => $user['full_name'],
-            'email' => $user['email'],
-            'user_type' => $user['user_type']
-        ]
-    ]);
+    if( $user['user_type'] == "job-seeker"){
+        header('Hub.php');
+
+    }
+    // echo json_encode([
+    //     'success' => true,
+    //     'message' => 'Login successful!',
+    //     'data' => [
+    //         'id' => $user['id'],
+    //         'full_name' => $user['full_name'],
+    //         'email' => $user['email'],
+    //         'user_type' => $user['user_type']
+    //     ]
+    // ]);
 
 } catch (Exception $e) {
     echo json_encode([
@@ -79,3 +83,4 @@ try {
 }
 
 ?>
+

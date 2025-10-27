@@ -338,6 +338,34 @@ if (isset($_GET['logout'])) {
         width: 500px;
         max-width: 90%;
     }
+        /* Fix for modal buttons */
+.modal-content {
+    max-height: 85vh;
+    overflow-y: auto;
+}
+
+.modal-content form {
+    min-height: auto;
+}
+
+.modal-content .btn-primary {
+    width: 100%;
+    margin-top: 20px;
+    padding: 12px 20px;
+    font-size: 16px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    position: relative;
+    z-index: 10;
+}
+
+/* Ensure form groups don't push button out of view */
+.form-group:last-of-type {
+    margin-bottom: 30px;
+}
 
     .close {
         float: right;
@@ -1220,3 +1248,4 @@ if (isset($_GET['logout'])) {
     <?php endif; ?>
 </body>
 </html>
+

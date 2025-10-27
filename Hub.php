@@ -43,7 +43,8 @@ $user = $stmt->fetch(PDO::FETCH_ASSOC);
                 $user_data['full_name'],
                 $user_data['email'],
                 $user_data['user_type'],
-                false  // This is now a proper boolean value
+                1
+               
             ]);
             
             // Fetch the newly created user record
@@ -951,6 +952,7 @@ if (isset($_GET['logout'])) {
 
 
 </html>
+
 
 
 

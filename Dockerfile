@@ -1,15 +1,12 @@
-# Use official PHP image with Apache
+# Use official PHP Apache image
 FROM php:8.2-apache
 
-# Install PostgreSQL PHP extensions
+# Install PostgreSQL client libraries and PHP extensions
 RUN apt-get update && apt-get install -y libpq-dev \
     && docker-php-ext-install pdo pdo_pgsql pgsql
 
-# Copy project files into container
+# Copy your PHP app to the web root
 COPY . /var/www/html/
 
-# Set working directory
-WORKDIR /var/www/html/
-
-# Expose port 8080 (Render will route to this)
-EXPOSE 8080
+# Expose port 80
+EXPOSE 80

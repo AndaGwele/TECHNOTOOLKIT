@@ -25,37 +25,38 @@ $stmt = $conn->prepare("SELECT * FROM hub_users WHERE user_id = ?");
 $stmt->execute([$user_id]);
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-if (!$user) {
-    // This means it's a new user, insert their data into hub_users
-    
-    // First, get the user's basic info from the users table
-    $stmt = $conn->prepare("SELECT full_name, email, user_type FROM users WHERE id = ?");
-    $stmt->execute([$user_id]);
-    $user_data = $stmt->fetch(PDO::FETCH_ASSOC);
-    
-    if ($user_data) {
-        // Insert the new user into hub_users table
-        $stmt = $conn->prepare("INSERT INTO hub_users (user_id, full_name, email, user_type, is_mentor) VALUES (?, ?, ?, ?, ?)");
-        $stmt->execute([
-            $user_id,
-            $user_data['full_name'],
-            $user_data['email'],
-            $user_data['user_type'],
-            false  // Default to not being a mentor initially
-        ]);
-        
-        // Fetch the newly created user record
-        $stmt = $conn->prepare("SELECT * FROM hub_users WHERE user_id = ?");
-        $stmt->execute([$user_id]);
-        $user = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-        // You can also add a welcome message or initial setup here
-        $_SESSION['message'] = "Welcome to your learning hub! Get started by adding your skills and goals.";
-    }
-}
 
-// Now $user contains the hub user data (either existing or newly created)
-$hub_user_id = $user['id'];
+    if (!$user) {
+        // This means it's a new user, insert their data into hub_users
+        
+        // First, get the user's basic info from the users table
+        $stmt = $conn->prepare("SELECT full_name, email, user_type FROM users WHERE id = ?");
+        $stmt->execute([$user_id]);
+        $user_data = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($user_data) {
+            // Insert the new user into hub_users table
+            // Use proper boolean values (true/false) instead of strings
+            $stmt = $conn->prepare("INSERT INTO hub_users (user_id, full_name, email, user_type, is_mentor) VALUES (?, ?, ?, ?, ?)");
+            $stmt->execute([
+                $user_id,
+                $user_data['full_name'],
+                $user_data['email'],
+                $user_data['user_type'],
+                false  // This is now a proper boolean value
+            ]);
+            
+            // Fetch the newly created user record
+            $stmt = $conn->prepare("SELECT * FROM hub_users WHERE user_id = ?");
+            $stmt->execute([$user_id]);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            $_SESSION['message'] = "Welcome to your learning hub! Get started by adding your skills and goals.";
+        }
+    }
+
+    // Now $user contains the hub user data (either existing or newly created)
+    $hub_user_id = $user['id'];
 
     // Handle form submissions
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -950,6 +951,7 @@ if (isset($_GET['logout'])) {
 
 
 </html>
+
 
 
 

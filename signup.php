@@ -15,7 +15,7 @@ $password = "RMMOboK8xw6MBqXRswfdacOHjGXCkLE8";   // Change to your PostgreSQL p
 
 try {
     // Create database connection
-    $conn = new PDO("mysql:host=$host;dbname=$db_name", $username, $password);
+    $conn = new PDO("pgsql:host=$host;dbname=$db_name", $username, $password);
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     // Get form data directly from POST
@@ -91,4 +91,5 @@ try {
         'message' => $e->getMessage()
     ]);
 }
+
 ?>

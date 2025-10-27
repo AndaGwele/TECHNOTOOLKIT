@@ -661,8 +661,7 @@ if (isset($_GET['logout'])) {
                 </li>
                 
                 <li><a href="#" data-section="mentorship" class="nav-link">Mentorship</a></li>
-                <li><a href="CVision.html"  class="nav-link">Analyze CV</a></li>
-                
+               <li><a href="#" class="nav-link" id="open-cvision-iframe">Analyze CV</a></li>
                 <?php if ($user['is_mentor']): ?>
                 <li><a href="#" data-section="mentor-dashboard" class="nav-link">Mentor Dashboard</a></li>
                 <?php endif; ?>
@@ -1263,12 +1262,51 @@ if (isset($_GET['logout'])) {
                         <p class="empty-state">No active mentees yet</p>
                     </div>
                 </div>
+                <!-- CVision Modal with iframe -->
+<div id="cvision-iframe-modal" class="modal">
+    <div class="modal-content" style="width: 95%; max-width: 1200px; height: 90vh;">
+        <span class="close">&times;</span>
+        <iframe 
+            id="cvision-frame"
+            src="CVision.html" 
+            style="width: 100%; height: 100%; border: none; border-radius: 8px;"
+            title="CV Analysis Tool"
+        ></iframe>
+    </div>
+</div>
 
 
         </main>
     </div>
 
     <script>
+        // Iframe Modal Functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const cvisionIframeModal = document.getElementById('cvision-iframe-modal');
+    const cvisionFrame = document.getElementById('cvision-frame');
+    const openCvisionIframeBtn = document.getElementById('open-cvision-iframe');
+    
+    if (openCvisionIframeBtn) {
+        openCvisionIframeBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            cvisionIframeModal.style.display = 'block';
+            // Reload the iframe to ensure fresh state
+            cvisionFrame.src = cvisionFrame.src;
+        });
+    }
+    
+    // Close modal when clicking X
+    cvisionIframeModal.querySelector('.close').addEventListener('click', function() {
+        cvisionIframeModal.style.display = 'none';
+    });
+    
+    // Close modal when clicking outside
+    window.addEventListener('click', function(e) {
+        if (e.target === cvisionIframeModal) {
+            cvisionIframeModal.style.display = 'none';
+        }
+    });
+});
     // Simple JavaScript for UI interactions (no API calls)
     document.addEventListener('DOMContentLoaded', function() {
         console.log('DOM loaded'); // Debug log
@@ -1367,6 +1405,7 @@ if (isset($_GET['logout'])) {
     <?php endif; ?>
 </body>
 </html>
+
 
 
 

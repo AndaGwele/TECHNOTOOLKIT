@@ -395,32 +395,8 @@ if (isset($_GET['logout'])) {
 </head>
 
 <body>
-    <?php if ($_SESSION['user_type'] !== 'job-seeker'): ?>
-    <div class="access-denied">
-        <h1>Access Denied</h1>
-        <p>This hub is only available for job seekers.</p>
-        <a href="index.html" class="btn btn-primary">Return to Home</a>
-    </div>
-    <?php else: ?>
-    <div class="container">
-        <!-- User Info Bar -->
-        <div class="user-info">
-            <div class="user-details">
-                <strong>Welcome, <?php echo htmlspecialchars($user['full_name']); ?></strong>
-                | User ID: <?php echo $hub_user_id; ?>
-            </div>
-            <a href="?logout=true" class="logout-btn">Logout</a>
-        </div>
-
-        <!-- Success Message -->
-        <?php if (isset($_SESSION['message'])): ?>
-        <div class="message">
-            <?php
-                    echo $_SESSION['message'];
-                    unset($_SESSION['message']);
-                    ?>
-        </div>
-        <?php endif; ?>
+ 
+     
 
         <!-- Navigation -->
         <nav class="navbar">
@@ -439,7 +415,24 @@ if (isset($_GET['logout'])) {
                 <li><a href="#" data-section="profile" class="nav-link">Profile</a></li>
             </ul>
         </nav>
+      <!-- User Info Bar -->
+        <div class="user-info">
+            <div class="user-details">
+                <strong>Welcome, <?php echo htmlspecialchars($user['full_name']); ?></strong>
+                | User ID: <?php echo $hub_user_id; ?>
+            </div>
+            <a href="?logout=true" class="logout-btn">Logout</a>
+        </div>
 
+        <!-- Success Message -->
+        <?php if (isset($_SESSION['message'])): ?>
+        <div class="message">
+            <?php
+                    echo $_SESSION['message'];
+                    unset($_SESSION['message']);
+                    ?>
+        </div>
+        <?php endif; ?>
         <!-- Main Content -->
         <main class="main-content">
             <!-- Dashboard Section -->
@@ -952,6 +945,7 @@ if (isset($_GET['logout'])) {
 
 
 </html>
+
 
 
 

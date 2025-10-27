@@ -661,7 +661,7 @@ if (isset($_GET['logout'])) {
                 </li>
                 
                 <li><a href="#" data-section="mentorship" class="nav-link">Mentorship</a></li>
-                <li><a href="CVision.html" data-section="cv-analysis" class="nav-link">Analyze CV</a></li>
+                <li><a href="CVision.html"  class="nav-link">Analyze CV</a></li>
                 
                 <?php if ($user['is_mentor']): ?>
                 <li><a href="#" data-section="mentor-dashboard" class="nav-link">Mentor Dashboard</a></li>
@@ -1367,5 +1367,6 @@ if (isset($_GET['logout'])) {
     <?php endif; ?>
 </body>
 </html>
+
 
 

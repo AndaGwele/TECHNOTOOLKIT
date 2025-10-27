@@ -562,13 +562,13 @@
                                 using Techno-Toolkit</p>
                         </div>
 
-                        <form id="signup">
+                        <form id="signup" action="signup.php" method="POST">
                             <!-- User Type Selection -->
                             <div class="user-type-selector">
                                 <label class="user-type-option"
                                     for="job-seeker">
                                     <input type="radio" id="job-seeker"
-                                        name="user-type" value="job-seeker"
+                                        name="user_type" value="job-seeker"
                                         checked>
                                     <div class="user-type-icon">👤</div>
                                     <div>Job Seeker</div>
@@ -576,7 +576,7 @@
 
                                 <label class="user-type-option" for="employer">
                                     <input type="radio" id="employer"
-                                        name="user-type" value="employer">
+                                        name="user_type" value="employer">
                                     <div class="user-type-icon">💼</div>
                                     <div>Employer</div>
                                 </label>
@@ -584,7 +584,7 @@
                                 <label class="user-type-option"
                                     for="entrepreneur">
                                     <input type="radio" id="entrepreneur"
-                                        name="user-type" value="entrepreneur">
+                                        name="user_type" value="entrepreneur">
                                     <div class="user-type-icon">🚀</div>
                                     <div>Entrepreneur</div>
                                 </label>
@@ -594,14 +594,14 @@
                                 <label for="full-name" class="form-label">Full
                                     Name</label>
                                 <input type="text" id="full-name"
-                                    class="form-control"
+                                    name="full_name" class="form-control"
                                     placeholder="Enter your full name" required>
                             </div>
 
                             <div class="form-group">
                                 <label for="email" class="form-label">Email
                                     Address</label>
-                                <input type="email" id="email"
+                                <input type="email" id="email" name="email"
                                     class="form-control"
                                     placeholder="Enter your email" required>
                             </div>
@@ -610,7 +610,7 @@
                                 <label for="password"
                                     class="form-label">Password</label>
                                 <input type="password" id="password"
-                                    class="form-control"
+                                    name="password" class="form-control"
                                     placeholder="Create a password" required>
                             </div>
 
@@ -618,14 +618,14 @@
                                 <label for="confirm-password"
                                     class="form-label">Confirm Password</label>
                                 <input type="password" id="confirm-password"
-                                    class="form-control"
+                                    name="confirm_password" class="form-control"
                                     placeholder="Confirm your password"
                                     required>
                             </div>
 
                             <div class="checkbox-group">
                                 <input type="checkbox" id="agree-terms"
-                                    required>
+                                    name="agree_terms" required>
                                 <label for="agree-terms">I agree to the <a
                                         href="#">Terms of Service</a> and <a
                                         href="#">Privacy Policy</a></label>
@@ -649,12 +649,12 @@
                             <p>Sign in to your Techno-Toolkit account</p>
                         </div>
 
-                        <form id="login">
+                        <form id="login" action="login.php" method="POST">
                             <div class="form-group">
                                 <label for="login-email"
                                     class="form-label">Email Address</label>
                                 <input type="email" id="login-email"
-                                    class="form-control"
+                                    name="email" class="form-control"
                                     placeholder="Enter your email" required>
                             </div>
 
@@ -662,7 +662,7 @@
                                 <label for="login-password"
                                     class="form-label">Password</label>
                                 <input type="password" id="login-password"
-                                    class="form-control"
+                                    name="password" class="form-control"
                                     placeholder="Enter your password" required>
                             </div>
 
@@ -670,7 +670,8 @@
                                 style="display: flex; justify-content: space-between; align-items: center;">
                                 <div class="checkbox-group"
                                     style="margin-bottom: 0;">
-                                    <input type="checkbox" id="remember-me">
+                                    <input type="checkbox" id="remember-me"
+                                        name="remember_me">
                                     <label for="remember-me">Remember me</label>
                                 </div>
 
@@ -691,14 +692,14 @@
                 </div>
             </div>
         </div>
-
         <!-- Footer -->
         <footer>
             <div class="container">
                 <div class="footer-content">
                     <div class="footer-column">
                         <h3>Techno-Toolkit</h3>
-                        <p>Building economic resilience through technology. From
+                        <p>Building economic resilience through technology.
+                            From
                             skills to employment to entrepreneurship.</p>
                     </div>
 
@@ -736,74 +737,102 @@
 
                 <div class="footer-bottom">
                     <p>&copy; 2023 Techno-Toolkit. All rights reserved. |
-                        Community-driven solutions for real-world problems</p>
+                        Community-driven solutions for real-world
+                        problems</p>
                 </div>
             </div>
         </footer>
 
         <script>
-        // Tab switching functionality
-        document.querySelectorAll('.tab-btn').forEach(button => {
-            button.addEventListener('click', () => {
-                // Update active tab
-                document.querySelectorAll('.tab-btn').forEach(btn => {
-                    btn.classList.remove('active');
-                });
-                button.classList.add('active');
-                
-                // Show corresponding form
-                const tab = button.getAttribute('data-tab');
-                if (tab === 'signup') {
-                    document.getElementById('signup-form').style.display = 'block';
-                    document.getElementById('login-form').style.display = 'none';
-                } else {
-                    document.getElementById('signup-form').style.display = 'none';
-                    document.getElementById('login-form').style.display = 'block';
-                }
+    // Tab switching functionality
+    document.querySelectorAll('.tab-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            // Update active tab
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
             });
+            button.classList.add('active');
+            
+            // Show corresponding form
+            const tab = button.getAttribute('data-tab');
+            if (tab === 'signup') {
+                document.getElementById('signup-form').style.display = 'block';
+                document.getElementById('login-form').style.display = 'none';
+            } else {
+                document.getElementById('signup-form').style.display = 'none';
+                document.getElementById('login-form').style.display = 'block';
+            }
         });
-        
-        // Switch between forms using links
-        document.querySelectorAll('.switch-to-login').forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                document.querySelector('[data-tab="login"]').click();
-            });
-        });
-        
-        document.querySelectorAll('.switch-to-signup').forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                document.querySelector('[data-tab="signup"]').click();
-            });
-        });
-        
-        // User type selection
-        document.querySelectorAll('.user-type-option').forEach(option => {
-            option.addEventListener('click', () => {
-                document.querySelectorAll('.user-type-option').forEach(opt => {
-                    opt.classList.remove('selected');
-                });
-                option.classList.add('selected');
-                option.querySelector('input').checked = true;
-            });
-        });
-        
-        // Form submission
-        document.getElementById('signup').addEventListener('submit', (e) => {
+    });
+    
+    // Switch between forms using links
+    document.querySelectorAll('.switch-to-login').forEach(link => {
+        link.addEventListener('click', (e) => {
             e.preventDefault();
-            // In a real application, you would handle form submission here
-            alert('Thank you for signing up! In a real application, this would create your account.');
+            document.querySelector('[data-tab="login"]').click();
         });
-        
-        document.getElementById('login').addEventListener('submit', (e) => {
+    });
+    
+    document.querySelectorAll('.switch-to-signup').forEach(link => {
+        link.addEventListener('click', (e) => {
             e.preventDefault();
-            // In a real application, you would handle form submission here
-            alert('Welcome back! In a real application, this would log you in.');
+            document.querySelector('[data-tab="signup"]').click();
         });
+    });
+    
+    // User type selection
+    document.querySelectorAll('.user-type-option').forEach(option => {
+        option.addEventListener('click', () => {
+            document.querySelectorAll('.user-type-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            option.classList.add('selected');
+            option.querySelector('input').checked = true;
+        });
+    });
+
+    // Password confirmation validation
+    const confirmPasswordInput = document.getElementById('confirm-password');
+    const passwordInput = document.getElementById('password');
+    if (confirmPasswordInput && passwordInput) {
+        confirmPasswordInput.addEventListener('input', function() {
+            if (this.value !== passwordInput.value) {
+                this.style.borderColor = 'red';
+            } else {
+                this.style.borderColor = '';
+            }
+        });
+    }
+    
+    // Form submission handling for better UX
+    document.getElementById('signup').addEventListener('submit', function(e) {
+        const submitButton = this.querySelector('button[type="submit"]');
+        const originalText = submitButton.textContent;
+        submitButton.textContent = 'Creating Account...';
+        submitButton.disabled = true;
         
-        // Initialize user type selection
-        document.querySelector('.user-type-option').classList.add('selected');
-    </script>
+        // Re-enable button after form submission (in case of error)
+        setTimeout(() => {
+            submitButton.textContent = originalText;
+            submitButton.disabled = false;
+        }, 3000);
+    });
+
+    document.getElementById('login').addEventListener('submit', function(e) {
+        const submitButton = this.querySelector('button[type="submit"]');
+        const originalText = submitButton.textContent;
+        submitButton.textContent = 'Signing In...';
+        submitButton.disabled = true;
+        
+        // Re-enable button after form submission (in case of error)
+        setTimeout(() => {
+            submitButton.textContent = originalText;
+            submitButton.disabled = false;
+        }, 3000);
+    });
+    
+    // Initialize user type selection
+    document.querySelector('.user-type-option').classList.add('selected');
+</script>
     </body>
 </html>

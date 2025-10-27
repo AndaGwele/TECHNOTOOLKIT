@@ -498,10 +498,13 @@ if (isset($_GET['logout'])) {
         margin: 15px 0 0 0;
         justify-content: center;
         gap: 20px;
+        align-items: center;
+        flex-wrap: wrap;
     }
 
     .nav-menu li {
         margin: 0;
+        position: relative;
     }
 
     .nav-link {
@@ -510,6 +513,7 @@ if (isset($_GET['logout'])) {
         padding: 5px 10px;
         border-radius: 4px;
         transition: background-color 0.3s;
+        display: block;
     }
 
     .nav-link:hover {
@@ -520,6 +524,111 @@ if (isset($_GET['logout'])) {
         max-width: 1200px;
         margin: 0 auto;
         padding: 20px;
+    }
+
+    /* Dropdown Styles */
+    .dropdown {
+        position: relative;
+    }
+
+    .dropdown-toggle {
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .dropdown-toggle::after {
+        content: '▼';
+        font-size: 10px;
+        margin-left: 5px;
+    }
+
+    .dropdown-menu {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        background: white;
+        min-width: 200px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        border-radius: 6px;
+        padding: 8px 0;
+        z-index: 1000;
+        list-style: none;
+        margin: 5px 0 0 0;
+    }
+
+    .dropdown-menu li {
+        margin: 0;
+    }
+
+    .dropdown-menu .nav-link {
+        padding: 8px 15px;
+        border-radius: 0;
+        white-space: nowrap;
+    }
+
+    .dropdown-menu .nav-link:hover {
+        background-color: #007bff;
+        color: white;
+    }
+
+    .dropdown:hover .dropdown-menu {
+        display: block;
+    }
+
+    /* CV Analysis Section */
+    .cv-analysis-section {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        padding: 25px;
+        margin-bottom: 20px;
+    }
+
+    .upload-area {
+        border: 2px dashed #ddd;
+        border-radius: 8px;
+        padding: 30px;
+        text-align: center;
+        margin-bottom: 20px;
+        transition: border-color 0.3s;
+    }
+
+    .upload-area:hover {
+        border-color: #007bff;
+    }
+
+    .upload-area.dragover {
+        border-color: #007bff;
+        background-color: #f8fbff;
+    }
+
+    .analysis-results {
+        margin-top: 25px;
+    }
+
+    .feedback-item {
+        padding: 12px;
+        margin: 8px 0;
+        border-radius: 6px;
+        border-left: 4px solid #007bff;
+    }
+
+    .feedback-strength {
+        border-left-color: #28a745;
+        background-color: #f8fff9;
+    }
+
+    .feedback-weakness {
+        border-left-color: #dc3545;
+        background-color: #fff8f8;
+    }
+
+    .feedback-improvement {
+        border-left-color: #ffc107;
+        background-color: #fffef0;
     }
     </style>
 </head>
@@ -540,17 +649,27 @@ if (isset($_GET['logout'])) {
             </div>
             <ul class="nav-menu">
                 <li><a href="#" data-section="dashboard" class="nav-link active">Dashboard</a></li>
-                <li><a href="#" data-section="bootcamps" class="nav-link">Bootcamps</a></li>
+                
+                <!-- Learning Resources Dropdown -->
+                <li class="dropdown">
+                    <a href="#" class="nav-link dropdown-toggle">Learning Resources</a>
+                    <ul class="dropdown-menu">
+                        <li><a href="#" data-section="bootcamps" class="nav-link">Bootcamps</a></li>
+                        <li><a href="#" data-section="skills" class="nav-link">Skills</a></li>
+                        <li><a href="#" data-section="certifications" class="nav-link">Certifications</a></li>
+                    </ul>
+                </li>
+                
                 <li><a href="#" data-section="mentorship" class="nav-link">Mentorship</a></li>
-                <li><a href="#" data-section="skills" class="nav-link">Skills</a></li>
-                <li><a href="#" data-section="certifications" class="nav-link">Certifications</a></li>
+                <li><a href="CVision.html" data-section="cv-analysis" class="nav-link">Analyze CV</a></li>
+                
                 <?php if ($user['is_mentor']): ?>
                 <li><a href="#" data-section="mentor-dashboard" class="nav-link">Mentor Dashboard</a></li>
                 <?php endif; ?>
+                
                 <li><a href="#" data-section="profile" class="nav-link">Profile</a></li>
             </ul>
         </nav>
-
         <!-- User Info Bar -->
         <div class="user-info">
             <div class="user-details">
@@ -1248,4 +1367,5 @@ if (isset($_GET['logout'])) {
     <?php endif; ?>
 </body>
 </html>
+
 

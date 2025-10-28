@@ -62,11 +62,14 @@ try {
     // Return success response
     if ($user['user_type'] == "job-seeker") {
         header('Location: Hub.php');
-        exit(); // Important: stop execution after redirect
+        exit(); 
     } else if($user['user_type'] == "entrepreneur"){
        header('Location: smart_inv.php');
         exit();
 
+    } else if ($user['user_type'] == "employer") {
+        header('Location: Job.php');
+        exit();
     }
     else {
         // For other user types, return JSON response
@@ -89,4 +92,5 @@ try {
     ]);
 }
 ?>
+
 

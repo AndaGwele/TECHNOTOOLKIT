@@ -116,15 +116,28 @@ try {
                 $_SESSION['message'] = 'Certification deleted successfully';
                 break;
 
-            case 'request_mentorship':
-                $stmt = $conn->prepare("INSERT INTO mentorship_requests (mentee_id, mentor_id, goals, frequency, status) VALUES (?, ?, ?, ?, 'pending')");
-                $stmt->execute([
-                    $hub_user_id,
-                    $_POST['mentor_id'],
-                    $_POST['mentorship_goals'],
-                    $_POST['mentorship_frequency']
-                ]);
-                $_SESSION['message'] = 'Mentorship request sent successfully';
+            case 'apply_job':
+                // Check if already applied
+                $stmt = $conn->prepare("SELECT id FROM job_applications WHERE job_id = ? AND jobseeker_id = ?");
+                $stmt->execute([$_POST['job_id'], $hub_user_id]);
+                $existing_application = $stmt->fetch();
+
+                if (!$existing_application) {
+                    $stmt = $conn->prepare("INSERT INTO job_applications (job_id, jobseeker_id, cover_letter, status) VALUES (?, ?, ?, 'pending')");
+                    $stmt->execute([
+                        $_POST['job_id'],
+                        $hub_user_id,
+                        $_POST['cover_letter'] ?? ''
+                    ]);
+                    
+                    // Update applications count
+                    $stmt = $conn->prepare("UPDATE jobs SET applications_count = applications_count + 1 WHERE id = ?");
+                    $stmt->execute([$_POST['job_id']]);
+                    
+                    $_SESSION['message'] = 'Job application submitted successfully!';
+                } else {
+                    $_SESSION['message'] = 'You have already applied for this job.';
+                }
                 break;
 
             case 'update_profile':
@@ -162,10 +175,35 @@ try {
     $stmt->execute([$hub_user_id]);
     $certifications = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Mentors
-    $stmt = $conn->prepare("SELECT * FROM mentors WHERE is_available = true ORDER BY rating DESC");
-    $stmt->execute();
-    $mentors = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // Available Jobs
+    $stmt = $conn->prepare("
+        SELECT 
+            j.*,
+            hu.company_name as employer_company,
+            (SELECT COUNT(*) FROM job_applications WHERE job_id = j.id AND jobseeker_id = ?) as has_applied
+        FROM jobs j 
+        JOIN hub_users hu ON j.employer_id = hu.id 
+        WHERE j.is_active = true 
+        AND j.application_deadline >= CURRENT_DATE
+        ORDER BY j.created_at DESC
+    ");
+    $stmt->execute([$hub_user_id]);
+    $available_jobs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // User's job applications
+    $stmt = $conn->prepare("
+        SELECT 
+            ja.*,
+            j.title as job_title,
+            j.company_name,
+            j.location
+        FROM job_applications ja
+        JOIN jobs j ON ja.job_id = j.id
+        WHERE ja.jobseeker_id = ?
+        ORDER BY ja.applied_at DESC
+    ");
+    $stmt->execute([$hub_user_id]);
+    $job_applications = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Dashboard stats
     $active_bootcamps = 0;
@@ -177,11 +215,7 @@ try {
 
     $skills_count = count($skills);
     $certs_count = count($certifications);
-
-    // Mentors connected
-    $stmt = $conn->prepare("SELECT COUNT(*) FROM mentorship_requests WHERE mentee_id = ? AND status = 'accepted'");
-    $stmt->execute([$hub_user_id]);
-    $mentors_count = $stmt->fetchColumn();
+    $jobs_applied_count = count($job_applications);
 
     // Recent activity
     $activities = [];
@@ -198,6 +232,14 @@ try {
             'type' => 'certification',
             'title' => 'Earned certification: ' . $cert['name'],
             'date' => $cert['date_earned']
+        ];
+    }
+
+    foreach ($job_applications as $application) {
+        $activities[] = [
+            'type' => 'job_application',
+            'title' => 'Applied for: ' . $application['job_title'],
+            'date' => $application['applied_at']
         ];
     }
 
@@ -226,10 +268,39 @@ if (isset($_GET['logout'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Skills & Mentorship Hub</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Skills & Career Hub</title>
     <style>
-    /* Add this for the user info display */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+        background: #f8f9fa;
+        color: #333;
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .navbar {
+        background: white;
+        padding: 15px 0;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+    }
+
+    .nav-brand h1 {
+        margin: 0;
+        text-align: center;
+        color: #007bff;
+    }
+
     .user-info {
         background: #f8f9fa;
         padding: 10px;
@@ -282,10 +353,18 @@ if (isset($_GET['logout'])) {
         margin-bottom: 15px;
     }
 
+    .job-card {
+        border-left: 4px solid #28a745;
+    }
+
+    .application-card {
+        border-left: 4px solid #17a2b8;
+    }
+
     .card-header {
         display: flex;
         justify-content: space-between;
-        align-items: center;
+        align-items: flex-start;
         margin-bottom: 10px;
     }
 
@@ -298,21 +377,23 @@ if (isset($_GET['logout'])) {
         cursor: pointer;
     }
 
-    .mentor-card {
-        background: white;
-        border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        padding: 15px;
-        margin-bottom: 15px;
-    }
-
-    .request-btn {
-        background: #007bff;
+    .apply-btn {
+        background: #28a745;
         color: white;
         border: none;
         padding: 8px 15px;
         border-radius: 4px;
         cursor: pointer;
+        margin-top: 10px;
+    }
+
+    .applied-btn {
+        background: #6c757d;
+        color: white;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 4px;
+        cursor: not-allowed;
         margin-top: 10px;
     }
 
@@ -334,35 +415,8 @@ if (isset($_GET['logout'])) {
         border-radius: 8px;
         width: 500px;
         max-width: 90%;
-    }
-
-    /* Fix for modal buttons */
-    .modal-content {
         max-height: 85vh;
         overflow-y: auto;
-    }
-
-    .modal-content form {
-        min-height: auto;
-    }
-
-    .modal-content .btn-primary {
-        width: 100%;
-        margin-top: 20px;
-        padding: 12px 20px;
-        font-size: 16px;
-        background: #007bff;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        position: relative;
-        z-index: 10;
-    }
-
-    /* Ensure form groups don't push button out of view */
-    .form-group:last-of-type {
-        margin-bottom: 30px;
     }
 
     .close {
@@ -370,6 +424,11 @@ if (isset($_GET['logout'])) {
         font-size: 24px;
         font-weight: bold;
         cursor: pointer;
+        color: #666;
+    }
+
+    .close:hover {
+        color: #000;
     }
 
     .form-group {
@@ -477,18 +536,6 @@ if (isset($_GET['logout'])) {
         padding: 20px;
     }
 
-    .navbar {
-        background: white;
-        padding: 15px 0;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        margin-bottom: 20px;
-    }
-
-    .nav-brand h1 {
-        margin: 0;
-        text-align: center;
-    }
-
     .nav-menu {
         display: flex;
         list-style: none;
@@ -502,7 +549,6 @@ if (isset($_GET['logout'])) {
 
     .nav-menu li {
         margin: 0;
-        position: relative;
     }
 
     .nav-link {
@@ -516,12 +562,6 @@ if (isset($_GET['logout'])) {
 
     .nav-link:hover {
         background-color: #f8f9fa;
-    }
-
-    .container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 20px;
     }
 
     /* Dropdown Styles */
@@ -574,6 +614,67 @@ if (isset($_GET['logout'])) {
 
     .dropdown:hover .dropdown-menu {
         display: block;
+    }
+
+    /* Job-specific styles */
+    .job-details {
+        margin: 10px 0;
+    }
+
+    .job-detail-item {
+        margin-bottom: 5px;
+    }
+
+    .job-detail-label {
+        font-weight: bold;
+        color: #666;
+    }
+
+    .status-badge {
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: bold;
+    }
+
+    .status-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .status-reviewed {
+        background: #cce7ff;
+        color: #004085;
+    }
+
+    .status-accepted {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .status-rejected {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .filters {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+
+    .filter-group {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .filter-select {
+        min-width: 200px;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
     }
 
     /* CVision Modal Styles */
@@ -677,7 +778,7 @@ if (isset($_GET['logout'])) {
         <!-- Navigation -->
         <nav class="navbar">
             <div class="nav-brand">
-                <h1>🎓 Skills & Mentorship Hub</h1>
+                <h1>🎓 Skills & Career Hub</h1>
             </div>
             <ul class="nav-menu">
                 <li><a href="#" data-section="dashboard" class="nav-link active">Dashboard</a></li>
@@ -692,12 +793,9 @@ if (isset($_GET['logout'])) {
                     </ul>
                 </li>
                 
-                <li><a href="#" data-section="mentorship" class="nav-link">Mentorship</a></li>
+                <li><a href="#" data-section="jobs" class="nav-link">Job Opportunities</a></li>
+                <li><a href="#" data-section="applications" class="nav-link">My Applications</a></li>
                 <li><a href="#" class="nav-link" id="open-cvision-modal">Analyze CV</a></li>
-                <?php if ($user['is_mentor']): ?>
-                <li><a href="#" data-section="mentor-dashboard" class="nav-link">Mentor Dashboard</a></li>
-                <?php endif; ?>
-                
                 <li><a href="#" data-section="profile" class="nav-link">Profile</a></li>
             </ul>
         </nav>
@@ -725,8 +823,8 @@ if (isset($_GET['logout'])) {
             <section id="dashboard" class="section active">
                 <div class="section-header">
                     <div>
-                        <h2>Welcome to Your Learning Journey</h2>
-                        <p>Track your progress, find mentors, and master new skills</p>
+                        <h2>Welcome to Your Career Journey</h2>
+                        <p>Track your progress, develop skills, and find job opportunities</p>
                     </div>
                 </div>
 
@@ -737,14 +835,6 @@ if (isset($_GET['logout'])) {
                         <div class="stat-content">
                             <h3>Active Bootcamps</h3>
                             <p class="stat-number"><?php echo $active_bootcamps; ?></p>
-                        </div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-icon">👥</div>
-                        <div class="stat-content">
-                            <h3>Mentors Connected</h3>
-                            <p class="stat-number"><?php echo $mentors_count; ?></p>
                         </div>
                     </div>
 
@@ -763,6 +853,14 @@ if (isset($_GET['logout'])) {
                             <p class="stat-number"><?php echo $certs_count; ?></p>
                         </div>
                     </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon">💼</div>
+                        <div class="stat-content">
+                            <h3>Jobs Applied</h3>
+                            <p class="stat-number"><?php echo $jobs_applied_count; ?></p>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Recent Activity -->
@@ -770,7 +868,7 @@ if (isset($_GET['logout'])) {
                     <h3>Recent Activity</h3>
                     <div id="recent-activity" class="activity-list">
                         <?php if (empty($recent_activities)): ?>
-                        <p class="empty-state">No recent activity yet. Start learning!</p>
+                        <p class="empty-state">No recent activity yet. Start learning and applying!</p>
                         <?php else: ?>
                         <?php foreach ($recent_activities as $activity): ?>
                         <div class="card">
@@ -998,71 +1096,189 @@ if (isset($_GET['logout'])) {
                 </div>
             </section>
 
-            <!-- Mentorship Section -->
-            <section id="mentorship" class="section">
+            <!-- Jobs Section -->
+            <section id="jobs" class="section">
                 <div class="section-header">
-                    <h2>Find Your Mentor</h2>
-                    <p>Connect with experienced professionals in your field</p>
+                    <h2>Available Job Opportunities</h2>
+                    <p>Find and apply for jobs that match your skills</p>
                 </div>
 
-                <div class="mentorship-container">
-                    <!-- Mentors Grid -->
-                    <div class="mentors-grid" id="mentors-list">
-                        <?php if (empty($mentors)): ?>
-                        <p class="empty-state">No mentors available at the moment.</p>
-                        <?php else: ?>
-                        <?php foreach ($mentors as $mentor): ?>
-                        <div class="mentor-card">
-                            <h3><?php echo htmlspecialchars($mentor['full_name']); ?></h3>
-                            <p><strong>Expertise:</strong> <?php echo htmlspecialchars($mentor['expertise']); ?></p>
-                            <p><strong>Experience:</strong> <?php echo $mentor['experience_years']; ?> years</p>
-                            <p><strong>Rating:</strong> <?php echo $mentor['rating']; ?>/5</p>
-                            <p><?php echo htmlspecialchars($mentor['bio']); ?></p>
-                            <button class="request-btn" data-mentor-id="<?php echo $mentor['id']; ?>"
-                                data-mentor-name="<?php echo htmlspecialchars($mentor['full_name']); ?>">Request
-                                Mentorship</button>
-                        </div>
-                        <?php endforeach; ?>
-                        <?php endif; ?>
+                <div class="filters">
+                    <div class="filter-group">
+                        <select class="filter-select" id="category-filter">
+                            <option value="">All Categories</option>
+                            <option value="Technology">Technology</option>
+                            <option value="Healthcare">Healthcare</option>
+                            <option value="Finance">Finance</option>
+                            <option value="Education">Education</option>
+                            <option value="Marketing">Marketing</option>
+                            <option value="Sales">Sales</option>
+                            <option value="Design">Design</option>
+                            <option value="Engineering">Engineering</option>
+                            <option value="Business">Business</option>
+                        </select>
+                        <select class="filter-select" id="employment-type-filter">
+                            <option value="">All Employment Types</option>
+                            <option value="Full-time">Full-time</option>
+                            <option value="Part-time">Part-time</option>
+                            <option value="Contract">Contract</option>
+                            <option value="Freelance">Freelance</option>
+                            <option value="Internship">Internship</option>
+                        </select>
+                        <input type="text" id="location-filter" class="filter-select" placeholder="Filter by location...">
                     </div>
                 </div>
 
-                <!-- Mentor Request Modal -->
-                <div id="mentor-modal" class="modal">
+                <div class="jobs-container">
+                    <?php if (empty($available_jobs)): ?>
+                    <p class="empty-state">No job opportunities available at the moment. Check back later!</p>
+                    <?php else: ?>
+                    <?php foreach ($available_jobs as $job): ?>
+                    <div class="card job-card" 
+                         data-category="<?php echo htmlspecialchars($job['category']); ?>"
+                         data-employment-type="<?php echo htmlspecialchars($job['employment_type']); ?>"
+                         data-location="<?php echo htmlspecialchars($job['location']); ?>">
+                        <div class="card-header">
+                            <div style="flex: 1;">
+                                <h3><?php echo htmlspecialchars($job['title']); ?></h3>
+                                <p class="card-subtitle"><?php echo htmlspecialchars($job['company_name']); ?> • <?php echo htmlspecialchars($job['location']); ?></p>
+                            </div>
+                            <div>
+                                <small>Posted: <?php echo date('M j, Y', strtotime($job['created_at'])); ?></small>
+                            </div>
+                        </div>
+                        
+                        <div class="job-details">
+                            <div class="job-detail-item">
+                                <span class="job-detail-label">Employment Type:</span> <?php echo htmlspecialchars($job['employment_type']); ?>
+                            </div>
+                            <div class="job-detail-item">
+                                <span class="job-detail-label">Salary Range:</span> <?php echo htmlspecialchars($job['salary_range']); ?>
+                            </div>
+                            <div class="job-detail-item">
+                                <span class="job-detail-label">Experience Level:</span> <?php echo htmlspecialchars($job['experience_level']); ?>
+                            </div>
+                            <div class="job-detail-item">
+                                <span class="job-detail-label">Category:</span> <?php echo htmlspecialchars($job['category']); ?>
+                            </div>
+                            <?php if ($job['application_deadline']): ?>
+                            <div class="job-detail-item">
+                                <span class="job-detail-label">Application Deadline:</span> <?php echo date('M j, Y', strtotime($job['application_deadline'])); ?>
+                            </div>
+                            <?php endif; ?>
+                        </div>
+                        
+                        <p><strong>Description:</strong> <?php echo nl2br(htmlspecialchars(substr($job['description'], 0, 200))); ?>...</p>
+                        
+                        <div style="margin-top: 15px;">
+                            <?php if ($job['has_applied']): ?>
+                                <button class="applied-btn" disabled>Already Applied</button>
+                            <?php else: ?>
+                                <button class="apply-btn" 
+                                        data-job-id="<?php echo $job['id']; ?>"
+                                        data-job-title="<?php echo htmlspecialchars($job['title']); ?>"
+                                        data-company-name="<?php echo htmlspecialchars($job['company_name']); ?>">
+                                    Apply Now
+                                </button>
+                            <?php endif; ?>
+                            <button class="btn btn-primary btn-sm view-job-btn" 
+                                    data-job='<?php echo htmlspecialchars(json_encode($job), ENT_QUOTES); ?>'
+                                    style="margin-left: 10px;">
+                                View Details
+                            </button>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Job Application Modal -->
+                <div id="job-application-modal" class="modal">
                     <div class="modal-content">
                         <span class="close">&times;</span>
-                        <h3>Request Mentorship</h3>
+                        <h3>Apply for Job</h3>
                         <form method="post">
-                            <input type="hidden" name="action" value="request_mentorship">
-                            <input type="hidden" id="mentor-id" name="mentor_id" value="">
+                            <input type="hidden" name="action" value="apply_job">
+                            <input type="hidden" id="apply-job-id" name="job_id">
+                            
                             <div class="form-group">
-                                <label for="mentor-name">Mentor</label>
-                                <input type="text" id="mentor-name" readonly>
+                                <label for="job-title">Job Title</label>
+                                <input type="text" id="job-title" readonly>
                             </div>
+                            
                             <div class="form-group">
-                                <label for="mentorship-goals">Your Goals</label>
-                                <textarea id="mentorship-goals" name="mentorship_goals" rows="4"
-                                    placeholder="What do you want to achieve?" required></textarea>
+                                <label for="company-name">Company</label>
+                                <input type="text" id="company-name" readonly>
                             </div>
+                            
                             <div class="form-group">
-                                <label for="mentorship-frequency">Preferred Frequency</label>
-                                <select id="mentorship-frequency" name="mentorship_frequency" required>
-                                    <option value="weekly">Weekly</option>
-                                    <option value="biweekly">Bi-weekly</option>
-                                    <option value="monthly">Monthly</option>
-                                </select>
+                                <label for="cover-letter">Cover Letter (Optional)</label>
+                                <textarea id="cover-letter" name="cover_letter" rows="6" 
+                                          placeholder="Tell the employer why you're a great fit for this position..."></textarea>
                             </div>
-                            <button type="submit" class="btn btn-primary">Send Request</button>
+                            
+                            <button type="submit" class="btn btn-primary">Submit Application</button>
                         </form>
                     </div>
                 </div>
+
+                <!-- Job Details Modal -->
+                <div id="job-details-modal" class="modal">
+                    <div class="modal-content" style="width: 90%; max-width: 800px;">
+                        <span class="close">&times;</span>
+                        <h3 id="job-details-title">Job Details</h3>
+                        <div id="job-details-content"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Applications Section -->
+            <section id="applications" class="section">
+                <div class="section-header">
+                    <h2>My Job Applications</h2>
+                    <p>Track the status of your job applications</p>
+                </div>
+
+                <?php if (empty($job_applications)): ?>
+                    <div class="empty-state">
+                        <p>You haven't applied for any jobs yet. <a href="#" data-section="jobs" class="nav-link">Browse available jobs</a> to get started!</p>
+                    </div>
+                <?php else: ?>
+                    <div class="applications-list">
+                        <?php foreach ($job_applications as $application): ?>
+                            <div class="card application-card">
+                                <div class="card-header">
+                                    <div style="flex: 1;">
+                                        <h3><?php echo htmlspecialchars($application['job_title']); ?></h3>
+                                        <p class="card-subtitle"><?php echo htmlspecialchars($application['company_name']); ?> • <?php echo htmlspecialchars($application['location']); ?></p>
+                                    </div>
+                                    <div>
+                                        <span class="status-badge status-<?php echo $application['status']; ?>">
+                                            <?php echo ucfirst($application['status']); ?>
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <p><strong>Applied on:</strong> <?php echo date('M j, Y', strtotime($application['applied_at'])); ?></p>
+                                
+                                <?php if ($application['cover_letter']): ?>
+                                    <p><strong>Your Cover Letter:</strong> <?php echo nl2br(htmlspecialchars(substr($application['cover_letter'], 0, 150))); ?>...</p>
+                                <?php endif; ?>
+                                
+                                <?php if ($application['employer_notes']): ?>
+                                    <p><strong>Employer Notes:</strong> <?php echo htmlspecialchars($application['employer_notes']); ?></p>
+                                <?php endif; ?>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
             </section>
 
             <!-- Profile Section -->
             <section id="profile" class="section">
                 <div class="section-header">
                     <h2>Your Profile</h2>
-                    <p>Manage your learning profile and preferences</p>
+                    <p>Manage your career profile and preferences</p>
                 </div>
 
                 <div class="profile-container">
@@ -1079,71 +1295,23 @@ if (isset($_GET['logout'])) {
                                 value="<?php echo htmlspecialchars($user['email']); ?>" required>
                         </div>
                         <div class="form-group">
-                            <label for="profile-bio">Bio</label>
+                            <label for="profile-bio">Professional Bio</label>
                             <textarea id="profile-bio" name="profile_bio" rows="4"
-                                placeholder="Tell us about yourself..."><?php echo htmlspecialchars($user['bio'] ?? ''); ?></textarea>
+                                placeholder="Tell employers about yourself, your experience, and career goals..."><?php echo htmlspecialchars($user['bio'] ?? ''); ?></textarea>
                         </div>
                         <div class="form-group">
                             <label for="profile-expertise">Areas of Expertise</label>
                             <input type="text" id="profile-expertise" name="profile_expertise"
                                 value="<?php echo htmlspecialchars($user['expertise'] ?? ''); ?>"
-                                placeholder="e.g., Web Development, Data Science">
+                                placeholder="e.g., Web Development, Data Science, Digital Marketing">
                         </div>
                         <div class="form-group">
-                            <label for="profile-goals">Learning Goals</label>
+                            <label for="profile-goals">Career Goals</label>
                             <textarea id="profile-goals" name="profile_goals" rows="4"
-                                placeholder="What do you want to achieve?"><?php echo htmlspecialchars($user['goals'] ?? ''); ?></textarea>
+                                placeholder="What are your career objectives and what type of roles are you seeking?"><?php echo htmlspecialchars($user['goals'] ?? ''); ?></textarea>
                         </div>
                         <button type="submit" class="btn btn-primary">Save Profile</button>
                     </form>
-                </div>
-            </section>
-
-            <!-- Mentor Dashboard Section -->
-            <section id="mentor-dashboard" class="section">
-                <div class="section-header">
-                    <h2>Mentor Dashboard</h2>
-                    <p>Manage your mentorship requests and mentees</p>
-                </div>
-
-                <div class="mentor-stats">
-                    <div class="stat-card">
-                        <div class="stat-icon">👥</div>
-                        <div class="stat-content">
-                            <h3>Active Mentees</h3>
-                            <p class="stat-number">0</p>
-                        </div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-icon">📋</div>
-                        <div class="stat-content">
-                            <h3>Pending Requests</h3>
-                            <p class="stat-number">0</p>
-                        </div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-icon">⭐</div>
-                        <div class="stat-content">
-                            <h3>Your Rating</h3>
-                            <p class="stat-number">0</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mentor-section">
-                    <h3>Mentorship Requests</h3>
-                    <div id="mentor-requests" class="requests-list">
-                        <p class="empty-state">No pending requests</p>
-                    </div>
-                </div>
-
-                <div class="mentor-section">
-                    <h3>Your Mentees</h3>
-                    <div id="mentor-mentees" class="mentees-list">
-                        <p class="empty-state">No active mentees yet</p>
-                    </div>
                 </div>
             </section>
 
@@ -1488,9 +1656,9 @@ ${jobDescription.value}
             }
         });
 
-        // Simple JavaScript for UI interactions (no API calls)
+        // Simple JavaScript for UI interactions
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM loaded'); // Debug log
+            console.log('DOM loaded');
 
             // Navigation
             const navLinks = document.querySelectorAll('.nav-link');
@@ -1519,7 +1687,6 @@ ${jobDescription.value}
             const bootcampBtn = document.getElementById('bootcamp-btn');
             if (bootcampBtn) {
                 bootcampBtn.addEventListener('click', function() {
-                    console.log('Bootcamp button clicked'); // Debug log
                     document.getElementById('bootcamp-modal').style.display = 'block';
                 });
             }
@@ -1528,7 +1695,6 @@ ${jobDescription.value}
             const skillBtn = document.getElementById('skill-btn');
             if (skillBtn) {
                 skillBtn.addEventListener('click', function() {
-                    console.log('Skill button clicked'); // Debug log
                     document.getElementById('skill-modal').style.display = 'block';
                 });
             }
@@ -1537,21 +1703,120 @@ ${jobDescription.value}
             const certBtn = document.getElementById('cert-btn');
             if (certBtn) {
                 certBtn.addEventListener('click', function() {
-                    console.log('Certification button clicked'); // Debug log
                     document.getElementById('cert-modal').style.display = 'block';
                 });
             }
 
-            // Mentor request modal
-            const requestButtons = document.querySelectorAll('.request-btn');
-            requestButtons.forEach(button => {
+            // Job application modal
+            const applyButtons = document.querySelectorAll('.apply-btn');
+            applyButtons.forEach(button => {
                 button.addEventListener('click', function() {
-                    const mentorId = this.getAttribute('data-mentor-id');
-                    const mentorName = this.getAttribute('data-mentor-name');
+                    const jobId = this.getAttribute('data-job-id');
+                    const jobTitle = this.getAttribute('data-job-title');
+                    const companyName = this.getAttribute('data-company-name');
 
-                    document.getElementById('mentor-id').value = mentorId;
-                    document.getElementById('mentor-name').value = mentorName;
-                    document.getElementById('mentor-modal').style.display = 'block';
+                    document.getElementById('apply-job-id').value = jobId;
+                    document.getElementById('job-title').value = jobTitle;
+                    document.getElementById('company-name').value = companyName;
+                    document.getElementById('job-application-modal').style.display = 'block';
+                });
+            });
+
+            // Job details modal
+            const viewJobButtons = document.querySelectorAll('.view-job-btn');
+            viewJobButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const job = JSON.parse(this.getAttribute('data-job'));
+                    
+                    document.getElementById('job-details-title').textContent = job.title;
+                    
+                    const content = `
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>${job.title}</h3>
+                                <p>${job.company_name} • ${job.location}</p>
+                            </div>
+                            
+                            <div class="job-details">
+                                <div class="job-detail-item">
+                                    <span class="job-detail-label">Company:</span> ${job.company_name}
+                                </div>
+                                <div class="job-detail-item">
+                                    <span class="job-detail-label">Location:</span> ${job.location}
+                                </div>
+                                <div class="job-detail-item">
+                                    <span class="job-detail-label">Employment Type:</span> ${job.employment_type}
+                                </div>
+                                <div class="job-detail-item">
+                                    <span class="job-detail-label">Salary Range:</span> ${job.salary_range}
+                                </div>
+                                <div class="job-detail-item">
+                                    <span class="job-detail-label">Experience Level:</span> ${job.experience_level}
+                                </div>
+                                <div class="job-detail-item">
+                                    <span class="job-detail-label">Category:</span> ${job.category}
+                                </div>
+                                <div class="job-detail-item">
+                                    <span class="job-detail-label">Education Level:</span> ${job.education_level || 'Not specified'}
+                                </div>
+                                ${job.application_deadline ? `
+                                <div class="job-detail-item">
+                                    <span class="job-detail-label">Application Deadline:</span> ${new Date(job.application_deadline).toLocaleDateString()}
+                                </div>
+                                ` : ''}
+                                <div class="job-detail-item">
+                                    <span class="job-detail-label">Contact Email:</span> ${job.contact_email}
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <h4>Job Description</h4>
+                                <p>${job.description.replace(/\n/g, '<br>')}</p>
+                            </div>
+                            
+                            <div class="form-group">
+                                <h4>Key Responsibilities</h4>
+                                <p>${job.responsibilities.replace(/\n/g, '<br>')}</p>
+                            </div>
+                            
+                            <div class="form-group">
+                                <h4>Requirements & Qualifications</h4>
+                                <p>${job.requirements.replace(/\n/g, '<br>')}</p>
+                            </div>
+                            
+                            <div style="margin-top: 20px;">
+                                ${job.has_applied ? 
+                                    '<button class="applied-btn" disabled>Already Applied</button>' : 
+                                    `<button class="apply-btn" 
+                                            data-job-id="${job.id}"
+                                            data-job-title="${job.title}"
+                                            data-company-name="${job.company_name}">
+                                        Apply Now
+                                    </button>`
+                                }
+                            </div>
+                        </div>
+                    `;
+                    
+                    document.getElementById('job-details-content').innerHTML = content;
+                    
+                    // Re-attach event listener for apply button in modal
+                    const modalApplyBtn = document.querySelector('#job-details-content .apply-btn');
+                    if (modalApplyBtn) {
+                        modalApplyBtn.addEventListener('click', function() {
+                            const jobId = this.getAttribute('data-job-id');
+                            const jobTitle = this.getAttribute('data-job-title');
+                            const companyName = this.getAttribute('data-company-name');
+
+                            document.getElementById('apply-job-id').value = jobId;
+                            document.getElementById('job-title').value = jobTitle;
+                            document.getElementById('company-name').value = companyName;
+                            document.getElementById('job-details-modal').style.display = 'none';
+                            document.getElementById('job-application-modal').style.display = 'block';
+                        });
+                    }
+                    
+                    document.getElementById('job-details-modal').style.display = 'block';
                 });
             });
 
@@ -1571,15 +1836,48 @@ ${jobDescription.value}
                 });
             });
 
-            // Hide mentor dashboard if user is not a mentor
-            const isMentor = <?php echo $user['is_mentor'] ? 'true' : 'false'; ?>;
-            console.log('Is mentor:', isMentor); // Debug log
-            if (!isMentor) {
-                const mentorNav = document.querySelector('[data-section="mentor-dashboard"]');
-                if (mentorNav) {
-                    mentorNav.parentElement.style.display = 'none';
-                }
+            // Job filters
+            const categoryFilter = document.getElementById('category-filter');
+            const employmentTypeFilter = document.getElementById('employment-type-filter');
+            const locationFilter = document.getElementById('location-filter');
+
+            if (categoryFilter) {
+                categoryFilter.addEventListener('change', filterJobs);
             }
+            if (employmentTypeFilter) {
+                employmentTypeFilter.addEventListener('change', filterJobs);
+            }
+            if (locationFilter) {
+                locationFilter.addEventListener('input', filterJobs);
+            }
+
+            function filterJobs() {
+                const categoryValue = categoryFilter.value;
+                const employmentTypeValue = employmentTypeFilter.value;
+                const locationValue = locationFilter.value.toLowerCase();
+                const jobCards = document.querySelectorAll('.job-card');
+                
+                jobCards.forEach(card => {
+                    const category = card.getAttribute('data-category');
+                    const employmentType = card.getAttribute('data-employment-type');
+                    const location = card.getAttribute('data-location').toLowerCase();
+                    
+                    const categoryMatch = !categoryValue || category === categoryValue;
+                    const employmentTypeMatch = !employmentTypeValue || employmentType === employmentTypeValue;
+                    const locationMatch = !locationValue || location.includes(locationValue);
+                    
+                    card.style.display = categoryMatch && employmentTypeMatch && locationMatch ? 'block' : 'none';
+                });
+            }
+
+            // Close modal with Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    modals.forEach(modal => {
+                        modal.style.display = 'none';
+                    });
+                }
+            });
         });
     </script>
 

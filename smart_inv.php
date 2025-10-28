@@ -15,6 +15,46 @@ $db_name = "toolkit_3dlp";
 $username = "toolkit_3dlp_user";
 $password = "RMMOboK8xw6MBqXRswfdacOHjGXCkLE8";
 
+// Function to convert PostgreSQL array to PHP array
+function pgArrayToPhpArray($pgArray) {
+    if (empty($pgArray) || $pgArray === '{}') {
+        return [];
+    }
+    
+    // Remove the curly braces
+    $pgArray = trim($pgArray, '{}');
+    
+    // Handle empty array case
+    if (empty($pgArray)) {
+        return [];
+    }
+    
+    // Split by comma, but be careful about quoted commas
+    $result = [];
+    $inQuotes = false;
+    $current = '';
+    
+    for ($i = 0; $i < strlen($pgArray); $i++) {
+        $char = $pgArray[$i];
+        
+        if ($char === '"') {
+            $inQuotes = !$inQuotes;
+        } elseif ($char === ',' && !$inQuotes) {
+            $result[] = trim($current, '"');
+            $current = '';
+        } else {
+            $current .= $char;
+        }
+    }
+    
+    // Add the last element
+    if (!empty($current)) {
+        $result[] = trim($current, '"');
+    }
+    
+    return $result;
+}
+
 try {
     $conn = new PDO("pgsql:host=$host;port=$port;dbname=$db_name", $username, $password);
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -105,27 +145,30 @@ try {
         exit();
     }
 
-    // Fetch job seekers with their skills and certifications
+    // Fetch job seekers with their skills and certifications - Alternative approach using string aggregation
     $stmt = $conn->prepare("
         SELECT 
-            hu.id, hu.full_name, hu.email, hu.bio, hu.expertise,
-            COALESCE(
-                ARRAY_AGG(DISTINCT s.name) FILTER (WHERE s.name IS NOT NULL),
-                ARRAY[]::text[]
-            ) as skills,
-            COALESCE(
-                ARRAY_AGG(DISTINCT c.name) FILTER (WHERE c.name IS NOT NULL),
-                ARRAY[]::text[]
-            ) as certifications
+            hu.id, 
+            hu.full_name, 
+            hu.email, 
+            hu.bio, 
+            hu.expertise,
+            (SELECT STRING_AGG(DISTINCT s.name, ',') FROM skills s WHERE s.user_id = hu.id AND s.name IS NOT NULL) as skills_str,
+            (SELECT STRING_AGG(DISTINCT c.name, ',') FROM certifications c WHERE c.user_id = hu.id AND c.name IS NOT NULL) as certifications_str
         FROM hub_users hu
-        LEFT JOIN skills s ON hu.id = s.user_id
-        LEFT JOIN certifications c ON hu.id = c.user_id
         WHERE hu.user_type = 'job-seeker'
-        GROUP BY hu.id, hu.full_name, hu.email, hu.bio, hu.expertise
         ORDER BY hu.full_name
     ");
     $stmt->execute();
     $jobseekers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Convert comma-separated strings to arrays
+    foreach ($jobseekers as &$jobseeker) {
+        $jobseeker['skills'] = !empty($jobseeker['skills_str']) ? explode(',', $jobseeker['skills_str']) : [];
+        $jobseeker['certifications'] = !empty($jobseeker['certifications_str']) ? explode(',', $jobseeker['certifications_str']) : [];
+        unset($jobseeker['skills_str'], $jobseeker['certifications_str']);
+    }
+    unset($jobseeker);
 
     // Fetch entrepreneur's potential candidates
     $stmt = $conn->prepare("
@@ -138,24 +181,23 @@ try {
             hu.expertise,
             pc.notes,
             pc.created_at,
-            COALESCE(
-                ARRAY_AGG(DISTINCT s.name) FILTER (WHERE s.name IS NOT NULL),
-                ARRAY[]::text[]
-            ) as skills,
-            COALESCE(
-                ARRAY_AGG(DISTINCT c.name) FILTER (WHERE c.name IS NOT NULL),
-                ARRAY[]::text[]
-            ) as certifications
+            (SELECT STRING_AGG(DISTINCT s.name, ',') FROM skills s WHERE s.user_id = hu.id AND s.name IS NOT NULL) as skills_str,
+            (SELECT STRING_AGG(DISTINCT c.name, ',') FROM certifications c WHERE c.user_id = hu.id AND c.name IS NOT NULL) as certifications_str
         FROM potential_candidates pc
         JOIN hub_users hu ON pc.jobseeker_id = hu.id
-        LEFT JOIN skills s ON hu.id = s.user_id
-        LEFT JOIN certifications c ON hu.id = c.user_id
         WHERE pc.entrepreneur_id = ?
-        GROUP BY pc.id, hu.id, hu.full_name, hu.email, hu.bio, hu.expertise, pc.notes, pc.created_at
         ORDER BY pc.created_at DESC
     ");
     $stmt->execute([$hub_user_id]);
     $potential_candidates = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Convert comma-separated strings to arrays for potential candidates
+    foreach ($potential_candidates as &$candidate) {
+        $candidate['skills'] = !empty($candidate['skills_str']) ? explode(',', $candidate['skills_str']) : [];
+        $candidate['certifications'] = !empty($candidate['certifications_str']) ? explode(',', $candidate['certifications_str']) : [];
+        unset($candidate['skills_str'], $candidate['certifications_str']);
+    }
+    unset($candidate);
 
     // Fetch entrepreneur's inventory
     $stmt = $conn->prepare("SELECT * FROM entrepreneur_inventory WHERE entrepreneur_id = ? ORDER BY item_name");
@@ -652,136 +694,135 @@ if (isset($_GET['logout'])) {
             </div>
         </div>
 
-        <!-- Talent Discovery Tab -->
-        <div id="talent" class="tab-content">
-            <div class="section">
-                <div class="section-header">
-                    <h2>Discover Skilled Job Seekers</h2>
-                    <p>Browse and connect with talented individuals</p>
-                </div>
-
-                <?php if (empty($jobseekers)): ?>
-                    <div class="empty-state">
-                        <p>No job seekers available at the moment.</p>
-                    </div>
-                <?php else: ?>
-                    <div class="candidates-list">
-                        <?php foreach ($jobseekers as $jobseeker): ?>
-                            <div class="card">
-                                <div class="card-header">
-                                    <div>
-                                        <h3 class="candidate-name"><?php echo htmlspecialchars($jobseeker['full_name']); ?></h3>
-                                        <p class="candidate-email"><?php echo htmlspecialchars($jobseeker['email']); ?></p>
-                                        <?php if (!empty($jobseeker['expertise'])): ?>
-                                            <p><strong>Expertise:</strong> <?php echo htmlspecialchars($jobseeker['expertise']); ?>
-                                            </p>
-                                        <?php endif; ?>
-                                        <?php if (!empty($jobseeker['bio'])): ?>
-                                            <p><?php echo htmlspecialchars($jobseeker['bio']); ?></p>
-                                        <?php endif; ?>
-                                    </div>
-                                    <button class="btn btn-success add-candidate-btn" 
-                                        data-jobseeker-id="<?php echo $jobseeker['id']; ?>" 
-                                        data-jobseeker-name="<?php echo htmlspecialchars($jobseeker['full_name']); ?>">
-                                        Add to Potential List
-                                    </button>
-                                </div>
-
-                                <?php if (!empty($jobseeker['skills'])): ?>
-                                    <div class="skills-list">
-                                        <strong>Skills:</strong>
-                                        <?php foreach ($jobseeker['skills'] as $skill): ?>
-                                            <?php if (!empty($skill)): ?>
-                                                <span class="skill-tag"><?php echo htmlspecialchars($skill); ?></span>
-                                            <?php endif; ?>
-                                        <?php endforeach; ?>
-                                    </div>
-                                <?php endif; ?>
-
-                                <?php if (!empty($jobseeker['certifications'])): ?>
-                                    <div class="certs-list">
-                                        <strong>Certifications:</strong>
-                                        <?php foreach ($jobseeker['certifications'] as $cert): ?>
-                                            <?php if (!empty($cert)): ?>
-                                                <span class="cert-tag"><?php echo htmlspecialchars($cert); ?></span>
-                                            <?php endif; ?>
-                                        <?php endforeach; ?>
-                                    </div>
-                                <?php endif; ?>
-                            </div>
-                        <?php endforeach; ?>
-                    </div>
-                <?php endif; ?>
-            </div>
+       <!-- Talent Discovery Tab -->
+<div id="talent" class="tab-content">
+    <div class="section">
+        <div class="section-header">
+            <h2>Discover Skilled Job Seekers</h2>
+            <p>Browse and connect with talented individuals</p>
         </div>
 
-        <!-- Potential Candidates Tab -->
-        <div id="potential" class="tab-content">
-            <div class="section">
-                <div class="section-header">
-                    <h2>Your Potential Candidates</h2>
-                    <p>Manage your shortlisted talent</p>
-                </div>
-
-                <?php if (empty($potential_candidates)): ?>
-                    <div class="empty-state">
-                        <p>No potential candidates yet. Start discovering talent!</p>
-                    </div>
-                <?php else: ?>
-                    <div class="candidates-list">
-                        <?php foreach ($potential_candidates as $candidate): ?>
-                            <div class="card">
-                                <div class="card-header">
-                                    <div>
-                                        <h3 class="candidate-name"><?php echo htmlspecialchars($candidate['full_name']); ?></h3>
-                                        <p class="candidate-email"><?php echo htmlspecialchars($candidate['email']); ?></p>
-                                        <?php if (!empty($candidate['expertise'])): ?>
-                                            <p><strong>Expertise:</strong> <?php echo htmlspecialchars($candidate['expertise']); ?>
-                                            </p>
-                                        <?php endif; ?>
-                                        <?php if (!empty($candidate['notes'])): ?>
-                                            <p><strong>Your Notes:</strong> <?php echo htmlspecialchars($candidate['notes']); ?></p>
-                                        <?php endif; ?>
-                                        <p><small>Added on:
-                                                <?php echo date('M j, Y', strtotime($candidate['created_at'])); ?></small></p>
-                                    </div>
-                                    <form method="post" style="display: inline;">
-                                        <input type="hidden" name="action" value="remove_from_potential_list">
-                                        <input type="hidden" name="candidate_id"
-                                            value="<?php echo $candidate['candidate_id']; ?>">
-                                        <button type="submit" class="btn btn-danger"
-                                            onclick="return confirm('Remove this candidate from your list?')">Remove</button>
-                                    </form>
-                                </div>
-
-                                <?php if (!empty($candidate['skills'])): ?>
-                                    <div class="skills-list">
-                                        <strong>Skills:</strong>
-                                        <?php foreach ($candidate['skills'] as $skill): ?>
-                                            <?php if (!empty($skill)): ?>
-                                                <span class="skill-tag"><?php echo htmlspecialchars($skill); ?></span>
-                                            <?php endif; ?>
-                                        <?php endforeach; ?>
-                                    </div>
+        <?php if (empty($jobseekers)): ?>
+            <div class="empty-state">
+                <p>No job seekers available at the moment.</p>
+            </div>
+        <?php else: ?>
+            <div class="candidates-list">
+                <?php foreach ($jobseekers as $jobseeker): ?>
+                    <div class="card">
+                        <div class="card-header">
+                            <div>
+                                <h3 class="candidate-name"><?php echo htmlspecialchars($jobseeker['full_name']); ?></h3>
+                                <p class="candidate-email"><?php echo htmlspecialchars($jobseeker['email']); ?></p>
+                                <?php if (!empty($jobseeker['expertise'])): ?>
+                                    <p><strong>Expertise:</strong> <?php echo htmlspecialchars($jobseeker['expertise']); ?>
+                                    </p>
                                 <?php endif; ?>
-
-                                <?php if (!empty($candidate['certifications'])): ?>
-                                    <div class="certs-list">
-                                        <strong>Certifications:</strong>
-                                        <?php foreach ($candidate['certifications'] as $cert): ?>
-                                            <?php if (!empty($cert)): ?>
-                                                <span class="cert-tag"><?php echo htmlspecialchars($cert); ?></span>
-                                            <?php endif; ?>
-                                        <?php endforeach; ?>
-                                    </div>
+                                <?php if (!empty($jobseeker['bio'])): ?>
+                                    <p><?php echo htmlspecialchars($jobseeker['bio']); ?></p>
                                 <?php endif; ?>
                             </div>
-                        <?php endforeach; ?>
+                            <button class="btn btn-success add-candidate-btn" 
+                                data-jobseeker-id="<?php echo $jobseeker['id']; ?>" 
+                                data-jobseeker-name="<?php echo htmlspecialchars($jobseeker['full_name']); ?>">
+                                Add to Potential List
+                            </button>
+                        </div>
+
+                        <?php if (!empty($jobseeker['skills']) && is_array($jobseeker['skills'])): ?>
+                            <div class="skills-list">
+                                <strong>Skills:</strong>
+                                <?php foreach ($jobseeker['skills'] as $skill): ?>
+                                    <?php if (!empty($skill)): ?>
+                                        <span class="skill-tag"><?php echo htmlspecialchars($skill); ?></span>
+                                    <?php endif; ?>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+
+                        <?php if (!empty($jobseeker['certifications']) && is_array($jobseeker['certifications'])): ?>
+                            <div class="certs-list">
+                                <strong>Certifications:</strong>
+                                <?php foreach ($jobseeker['certifications'] as $cert): ?>
+                                    <?php if (!empty($cert)): ?>
+                                        <span class="cert-tag"><?php echo htmlspecialchars($cert); ?></span>
+                                    <?php endif; ?>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
                     </div>
-                <?php endif; ?>
+                <?php endforeach; ?>
             </div>
-        </div>
+        <?php endif; ?>
     </div>
+</div>
+
+<!-- Potential Candidates Tab -->
+<div id="potential" class="tab-content">
+    <div class="section">
+        <div class="section-header">
+            <h2>Your Potential Candidates</h2>
+            <p>Manage your shortlisted talent</p>
+        </div>
+
+        <?php if (empty($potential_candidates)): ?>
+            <div class="empty-state">
+                <p>No potential candidates yet. Start discovering talent!</p>
+            </div>
+        <?php else: ?>
+            <div class="candidates-list">
+                <?php foreach ($potential_candidates as $candidate): ?>
+                    <div class="card">
+                        <div class="card-header">
+                            <div>
+                                <h3 class="candidate-name"><?php echo htmlspecialchars($candidate['full_name']); ?></h3>
+                                <p class="candidate-email"><?php echo htmlspecialchars($candidate['email']); ?></p>
+                                <?php if (!empty($candidate['expertise'])): ?>
+                                    <p><strong>Expertise:</strong> <?php echo htmlspecialchars($candidate['expertise']); ?>
+                                    </p>
+                                <?php endif; ?>
+                                <?php if (!empty($candidate['notes'])): ?>
+                                    <p><strong>Your Notes:</strong> <?php echo htmlspecialchars($candidate['notes']); ?></p>
+                                <?php endif; ?>
+                                <p><small>Added on:
+                                        <?php echo date('M j, Y', strtotime($candidate['created_at'])); ?></small></p>
+                            </div>
+                            <form method="post" style="display: inline;">
+                                <input type="hidden" name="action" value="remove_from_potential_list">
+                                <input type="hidden" name="candidate_id"
+                                    value="<?php echo $candidate['candidate_id']; ?>">
+                                <button type="submit" class="btn btn-danger"
+                                    onclick="return confirm('Remove this candidate from your list?')">Remove</button>
+                            </form>
+                        </div>
+
+                        <?php if (!empty($candidate['skills']) && is_array($candidate['skills'])): ?>
+                            <div class="skills-list">
+                                <strong>Skills:</strong>
+                                <?php foreach ($candidate['skills'] as $skill): ?>
+                                    <?php if (!empty($skill)): ?>
+                                        <span class="skill-tag"><?php echo htmlspecialchars($skill); ?></span>
+                                    <?php endif; ?>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+
+                        <?php if (!empty($candidate['certifications']) && is_array($candidate['certifications'])): ?>
+                            <div class="certs-list">
+                                <strong>Certifications:</strong>
+                                <?php foreach ($candidate['certifications'] as $cert): ?>
+                                    <?php if (!empty($cert)): ?>
+                                        <span class="cert-tag"><?php echo htmlspecialchars($cert); ?></span>
+                                    <?php endif; ?>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+    </div>
+</div>
 
     <!-- Add Inventory Modal -->
     <div id="inventory-modal" class="modal">
@@ -927,3 +968,4 @@ if (isset($_GET['logout'])) {
     </script>
 </body>
 </html>
+

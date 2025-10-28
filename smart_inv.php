@@ -1,201 +1,183 @@
 <?php
-// PHP Session and Database Logic
 session_start();
 header("Content-Type: text/html; charset=UTF-8");
 
-// Simulate user session for demo purposes
-if (!isset($_SESSION['user_id'])) {
-    $_SESSION['user_id'] = 1;
-    $_SESSION['user_type'] = 'entrepreneur';
-}
-
-// Demo data - in a real application, this would come from a database
-$user = [
-    'id' => 1,
-    'user_id' => 1,
-    'full_name' => 'John Entrepreneur',
-    'email' => 'john@example.com',
-    'user_type' => 'entrepreneur'
-];
-
-$jobseekers = [
-    [
-        'id' => 101,
-        'full_name' => 'Alice Johnson',
-        'email' => 'alice@example.com',
-        'bio' => 'Experienced software developer with 5+ years in web technologies.',
-        'expertise' => 'Software Development',
-        'skills' => ['JavaScript', 'PHP', 'React', 'Node.js'],
-        'certifications' => ['AWS Certified', 'Scrum Master']
-    ],
-    [
-        'id' => 102,
-        'full_name' => 'Bob Smith',
-        'email' => 'bob@example.com',
-        'bio' => 'Marketing specialist with a track record of successful campaigns.',
-        'expertise' => 'Digital Marketing',
-        'skills' => ['SEO', 'Content Marketing', 'Social Media', 'Analytics'],
-        'certifications' => ['Google Ads Certified', 'HubSpot Inbound']
-    ],
-    [
-        'id' => 103,
-        'full_name' => 'Carol Davis',
-        'email' => 'carol@example.com',
-        'bio' => 'Finance professional with expertise in budgeting and financial planning.',
-        'expertise' => 'Financial Analysis',
-        'skills' => ['Financial Modeling', 'Excel', 'QuickBooks', 'Budgeting'],
-        'certifications' => ['CFA Level 1', 'CPA']
-    ]
-];
-
-$potential_candidates = [
-    [
-        'candidate_id' => 1,
-        'jobseeker_id' => 101,
-        'full_name' => 'Alice Johnson',
-        'email' => 'alice@example.com',
-        'bio' => 'Experienced software developer with 5+ years in web technologies.',
-        'expertise' => 'Software Development',
-        'notes' => 'Strong technical skills, good cultural fit',
-        'created_at' => '2023-10-15',
-        'skills' => ['JavaScript', 'PHP', 'React', 'Node.js'],
-        'certifications' => ['AWS Certified', 'Scrum Master']
-    ]
-];
-
-$inventory = [
-    [
-        'id' => 1,
-        'item_name' => 'Laptop',
-        'category' => 'electronics',
-        'quantity' => 15,
-        'unit_price' => 899.99,
-        'reorder_level' => 5
-    ],
-    [
-        'id' => 2,
-        'item_name' => 'Office Chair',
-        'category' => 'furniture',
-        'quantity' => 25,
-        'unit_price' => 149.50,
-        'reorder_level' => 10
-    ],
-    [
-        'id' => 3,
-        'item_name' => 'Printer Paper',
-        'category' => 'stationery',
-        'quantity' => 3,
-        'unit_price' => 24.99,
-        'reorder_level' => 5
-    ],
-    [
-        'id' => 4,
-        'item_name' => 'Coffee Machine',
-        'category' => 'appliances',
-        'quantity' => 2,
-        'unit_price' => 299.99,
-        'reorder_level' => 2
-    ]
-];
-
-// Calculate inventory stats
-$total_items = count($inventory);
-$low_stock_items = 0;
-$total_inventory_value = 0;
-
-foreach ($inventory as $item) {
-    $item_value = $item['quantity'] * $item['unit_price'];
-    $total_inventory_value += $item_value;
-
-    if ($item['quantity'] <= $item['reorder_level']) {
-        $low_stock_items++;
-    }
-}
-
-// Handle form submissions
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $action = $_POST['action'] ?? '';
-    
-    switch ($action) {
-        case 'add_to_potential_list':
-            // Find the jobseeker and add to potential candidates
-            $jobseeker_id = $_POST['jobseeker_id'];
-            $notes = $_POST['notes'] ?? '';
-            
-            foreach ($jobseekers as $jobseeker) {
-                if ($jobseeker['id'] == $jobseeker_id) {
-                    $new_candidate = $jobseeker;
-                    $new_candidate['candidate_id'] = count($potential_candidates) + 1;
-                    $new_candidate['notes'] = $notes;
-                    $new_candidate['created_at'] = date('Y-m-d');
-                    $potential_candidates[] = $new_candidate;
-                    break;
-                }
-            }
-            $_SESSION['message'] = 'Candidate added to potential list successfully';
-            break;
-            
-        case 'remove_from_potential_list':
-            $candidate_id = $_POST['candidate_id'];
-            $potential_candidates = array_filter($potential_candidates, function($candidate) use ($candidate_id) {
-                return $candidate['candidate_id'] != $candidate_id;
-            });
-            $_SESSION['message'] = 'Candidate removed from potential list';
-            break;
-            
-        case 'update_inventory':
-            $new_item = [
-                'id' => count($inventory) + 1,
-                'item_name' => $_POST['item_name'],
-                'category' => $_POST['category'],
-                'quantity' => $_POST['quantity'],
-                'unit_price' => $_POST['unit_price'],
-                'reorder_level' => $_POST['reorder_level']
-            ];
-            $inventory[] = $new_item;
-            $_SESSION['message'] = 'Inventory updated successfully';
-            
-            // Recalculate stats
-            $total_items = count($inventory);
-            $low_stock_items = 0;
-            $total_inventory_value = 0;
-            
-            foreach ($inventory as $item) {
-                $item_value = $item['quantity'] * $item['unit_price'];
-                $total_inventory_value += $item_value;
-                
-                if ($item['quantity'] <= $item['reorder_level']) {
-                    $low_stock_items++;
-                }
-            }
-            break;
-            
-        case 'delete_inventory_item':
-            $inventory_id = $_POST['inventory_id'];
-            $inventory = array_filter($inventory, function($item) use ($inventory_id) {
-                return $item['id'] != $inventory_id;
-            });
-            $_SESSION['message'] = 'Inventory item deleted successfully';
-            
-            // Recalculate stats
-            $total_items = count($inventory);
-            $low_stock_items = 0;
-            $total_inventory_value = 0;
-            
-            foreach ($inventory as $item) {
-                $item_value = $item['quantity'] * $item['unit_price'];
-                $total_inventory_value += $item_value;
-                
-                if ($item['quantity'] <= $item['reorder_level']) {
-                    $low_stock_items++;
-                }
-            }
-            break;
-    }
-    
-    // Refresh the page to show updated data
-    header("Location: " . $_SERVER['PHP_SELF']);
+// Check if user is logged in and is an entrepreneur
+if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'entrepreneur') {
+    header("Location: signupLogin.html");
     exit();
+}
+
+// Database configuration
+$host = "dpg-d3vnf0ngi27c73ahg940-a.oregon-postgres.render.com";
+$port = "5432";
+$db_name = "toolkit_3dlp";
+$username = "toolkit_3dlp_user";
+$password = "RMMOboK8xw6MBqXRswfdacOHjGXCkLE8";
+
+try {
+    $conn = new PDO("pgsql:host=$host;port=$port;dbname=$db_name", $username, $password);
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+    // Get entrepreneur data
+    $user_id = $_SESSION['user_id'];
+    $stmt = $conn->prepare("SELECT * FROM hub_users WHERE user_id = ?");
+    $stmt->execute([$user_id]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$user) {
+        // First, get the user's basic info from the users table
+        $stmt = $conn->prepare("SELECT full_name, email, user_type FROM users WHERE id = ?");
+        $stmt->execute([$user_id]);
+        $user_data = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($user_data) {
+            // Insert the new user into hub_users table
+            $is_mentor = ($user_data['user_type'] === 'mentor') ? 1 : 0;
+
+            $stmt = $conn->prepare("INSERT INTO hub_users (user_id, full_name, email, user_type, is_mentor) VALUES (?, ?, ?, ?, ?)");
+            $stmt->execute([
+                $user_id,
+                $user_data['full_name'],
+                $user_data['email'],
+                $user_data['user_type'],
+                $is_mentor
+            ]);
+
+            // Fetch the newly created user record
+            $stmt = $conn->prepare("SELECT * FROM hub_users WHERE user_id = ?");
+            $stmt->execute([$user_id]);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            $_SESSION['message'] = "Welcome to your entrepreneur dashboard!";
+        }
+    }
+
+    $hub_user_id = $user['id'];
+
+    // Handle form submissions
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $action = $_POST['action'] ?? '';
+
+        switch ($action) {
+            case 'add_to_potential_list':
+                $stmt = $conn->prepare("INSERT INTO potential_candidates (entrepreneur_id, jobseeker_id, notes, status) VALUES (?, ?, ?, 'interested')");
+                $stmt->execute([
+                    $hub_user_id,
+                    $_POST['jobseeker_id'],
+                    $_POST['notes'] ?? ''
+                ]);
+                $_SESSION['message'] = 'Candidate added to potential list successfully';
+                break;
+
+            case 'remove_from_potential_list':
+                $stmt = $conn->prepare("DELETE FROM potential_candidates WHERE id = ? AND entrepreneur_id = ?");
+                $stmt->execute([$_POST['candidate_id'], $hub_user_id]);
+                $_SESSION['message'] = 'Candidate removed from potential list';
+                break;
+
+            case 'update_inventory':
+                $stmt = $conn->prepare("INSERT INTO entrepreneur_inventory (entrepreneur_id, item_name, category, quantity, unit_price, reorder_level) VALUES (?, ?, ?, ?, ?, ?) 
+                                      ON CONFLICT (entrepreneur_id, item_name) 
+                                      DO UPDATE SET quantity = ?, unit_price = ?, reorder_level = ?, updated_at = CURRENT_TIMESTAMP");
+                $stmt->execute([
+                    $hub_user_id,
+                    $_POST['item_name'],
+                    $_POST['category'],
+                    $_POST['quantity'],
+                    $_POST['unit_price'],
+                    $_POST['reorder_level'],
+                    $_POST['quantity'],
+                    $_POST['unit_price'],
+                    $_POST['reorder_level']
+                ]);
+                $_SESSION['message'] = 'Inventory updated successfully';
+                break;
+
+            case 'delete_inventory_item':
+                $stmt = $conn->prepare("DELETE FROM entrepreneur_inventory WHERE id = ? AND entrepreneur_id = ?");
+                $stmt->execute([$_POST['inventory_id'], $hub_user_id]);
+                $_SESSION['message'] = 'Inventory item deleted successfully';
+                break;
+        }
+
+        header("Location: " . $_SERVER['PHP_SELF']);
+        exit();
+    }
+
+    // Fetch job seekers with their skills and certifications
+    $stmt = $conn->prepare("
+        SELECT 
+            hu.id, hu.full_name, hu.email, hu.bio, hu.expertise,
+            COALESCE(
+                ARRAY_AGG(DISTINCT s.name) FILTER (WHERE s.name IS NOT NULL),
+                ARRAY[]::text[]
+            ) as skills,
+            COALESCE(
+                ARRAY_AGG(DISTINCT c.name) FILTER (WHERE c.name IS NOT NULL),
+                ARRAY[]::text[]
+            ) as certifications
+        FROM hub_users hu
+        LEFT JOIN skills s ON hu.id = s.user_id
+        LEFT JOIN certifications c ON hu.id = c.user_id
+        WHERE hu.user_type = 'job-seeker'
+        GROUP BY hu.id, hu.full_name, hu.email, hu.bio, hu.expertise
+        ORDER BY hu.full_name
+    ");
+    $stmt->execute();
+    $jobseekers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Fetch entrepreneur's potential candidates
+    $stmt = $conn->prepare("
+        SELECT 
+            pc.id as candidate_id,
+            hu.id as jobseeker_id,
+            hu.full_name,
+            hu.email,
+            hu.bio,
+            hu.expertise,
+            pc.notes,
+            pc.created_at,
+            COALESCE(
+                ARRAY_AGG(DISTINCT s.name) FILTER (WHERE s.name IS NOT NULL),
+                ARRAY[]::text[]
+            ) as skills,
+            COALESCE(
+                ARRAY_AGG(DISTINCT c.name) FILTER (WHERE c.name IS NOT NULL),
+                ARRAY[]::text[]
+            ) as certifications
+        FROM potential_candidates pc
+        JOIN hub_users hu ON pc.jobseeker_id = hu.id
+        LEFT JOIN skills s ON hu.id = s.user_id
+        LEFT JOIN certifications c ON hu.id = c.user_id
+        WHERE pc.entrepreneur_id = ?
+        GROUP BY pc.id, hu.id, hu.full_name, hu.email, hu.bio, hu.expertise, pc.notes, pc.created_at
+        ORDER BY pc.created_at DESC
+    ");
+    $stmt->execute([$hub_user_id]);
+    $potential_candidates = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Fetch entrepreneur's inventory
+    $stmt = $conn->prepare("SELECT * FROM entrepreneur_inventory WHERE entrepreneur_id = ? ORDER BY item_name");
+    $stmt->execute([$hub_user_id]);
+    $inventory = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Calculate inventory stats
+    $total_items = count($inventory);
+    $low_stock_items = 0;
+    $total_inventory_value = 0;
+
+    foreach ($inventory as $item) {
+        $item_value = $item['quantity'] * $item['unit_price'];
+        $total_inventory_value += $item_value;
+
+        if ($item['quantity'] <= $item['reorder_level']) {
+            $low_stock_items++;
+        }
+    }
+
+} catch (PDOException $e) {
+    die("Database connection failed: " . $e->getMessage());
 }
 
 // Handle logout
@@ -709,7 +691,9 @@ if (isset($_GET['logout'])) {
                                     <div class="skills-list">
                                         <strong>Skills:</strong>
                                         <?php foreach ($jobseeker['skills'] as $skill): ?>
-                                            <span class="skill-tag"><?php echo htmlspecialchars($skill); ?></span>
+                                            <?php if (!empty($skill)): ?>
+                                                <span class="skill-tag"><?php echo htmlspecialchars($skill); ?></span>
+                                            <?php endif; ?>
                                         <?php endforeach; ?>
                                     </div>
                                 <?php endif; ?>
@@ -718,7 +702,9 @@ if (isset($_GET['logout'])) {
                                     <div class="certs-list">
                                         <strong>Certifications:</strong>
                                         <?php foreach ($jobseeker['certifications'] as $cert): ?>
-                                            <span class="cert-tag"><?php echo htmlspecialchars($cert); ?></span>
+                                            <?php if (!empty($cert)): ?>
+                                                <span class="cert-tag"><?php echo htmlspecialchars($cert); ?></span>
+                                            <?php endif; ?>
                                         <?php endforeach; ?>
                                     </div>
                                 <?php endif; ?>
@@ -772,7 +758,9 @@ if (isset($_GET['logout'])) {
                                     <div class="skills-list">
                                         <strong>Skills:</strong>
                                         <?php foreach ($candidate['skills'] as $skill): ?>
-                                            <span class="skill-tag"><?php echo htmlspecialchars($skill); ?></span>
+                                            <?php if (!empty($skill)): ?>
+                                                <span class="skill-tag"><?php echo htmlspecialchars($skill); ?></span>
+                                            <?php endif; ?>
                                         <?php endforeach; ?>
                                     </div>
                                 <?php endif; ?>
@@ -781,7 +769,9 @@ if (isset($_GET['logout'])) {
                                     <div class="certs-list">
                                         <strong>Certifications:</strong>
                                         <?php foreach ($candidate['certifications'] as $cert): ?>
-                                            <span class="cert-tag"><?php echo htmlspecialchars($cert); ?></span>
+                                            <?php if (!empty($cert)): ?>
+                                                <span class="cert-tag"><?php echo htmlspecialchars($cert); ?></span>
+                                            <?php endif; ?>
                                         <?php endforeach; ?>
                                     </div>
                                 <?php endif; ?>

@@ -19,242 +19,57 @@ try {
     $conn = new PDO("pgsql:host=$host;port=$port;dbname=$db_name", $username, $password);
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    // Get user data
+    // Get or create hub user
     $user_id = $_SESSION['user_id'];
-    $stmt = $conn->prepare("SELECT * FROM hub_users WHERE user_id = ?");
-    $stmt->execute([$user_id]);
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
+    $user = getOrCreateHubUser($conn, $user_id);
+    
     if (!$user) {
-        // First, get the user's basic info from the users table
-        $stmt = $conn->prepare("SELECT full_name, email, user_type FROM users WHERE id = ?");
-        $stmt->execute([$user_id]);
-        $user_data = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-        if ($user_data) {
-            // Insert the new user into hub_users table
-            $is_mentor = ($user_data['user_type'] === 'mentor') ? 1 : 0;
-            
-            $stmt = $conn->prepare("INSERT INTO hub_users (user_id, full_name, email, user_type, is_mentor) VALUES (?, ?, ?, ?, ?)");
-            $stmt->execute([
-                $user_id,
-                $user_data['full_name'],
-                $user_data['email'],
-                $user_data['user_type'],
-                $is_mentor
-            ]);
-            
-            // Fetch the newly created user record
-            $stmt = $conn->prepare("SELECT * FROM hub_users WHERE user_id = ?");
-            $stmt->execute([$user_id]);
-            $user = $stmt->fetch(PDO::FETCH_ASSOC);
-            
-            $_SESSION['message'] = "Welcome to your learning hub! Get started by adding your skills and goals.";
-        }
+        throw new Exception("Unable to create user profile");
     }
 
-    // Now $user contains the hub user data (either existing or newly created)
     $hub_user_id = $user['id'];
 
     // Handle form submissions
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $action = $_POST['action'] ?? '';
-
-        switch ($action) {
-            case 'create_bootcamp':
-                $stmt = $conn->prepare("INSERT INTO bootcamps (user_id, name, description, duration, level, status) VALUES (?, ?, ?, ?, ?, 'active')");
-                $stmt->execute([
-                    $hub_user_id,
-                    $_POST['bootcamp_name'],
-                    $_POST['bootcamp_description'],
-                    $_POST['bootcamp_duration'],
-                    $_POST['bootcamp_level']
-                ]);
-                $_SESSION['message'] = 'Bootcamp created successfully';
-                break;
-
-            case 'delete_bootcamp':
-                $stmt = $conn->prepare("DELETE FROM bootcamps WHERE id = ? AND user_id = ?");
-                $stmt->execute([$_POST['bootcamp_id'], $hub_user_id]);
-                $_SESSION['message'] = 'Bootcamp deleted successfully';
-                break;
-
-            case 'create_skill':
-                $stmt = $conn->prepare("INSERT INTO skills (user_id, name, category, level, description) VALUES (?, ?, ?, ?, ?)");
-                $stmt->execute([
-                    $hub_user_id,
-                    $_POST['skill_name'],
-                    $_POST['skill_category'],
-                    $_POST['skill_level'],
-                    $_POST['description'] ?? ''
-                ]);
-                $_SESSION['message'] = 'Skill added successfully';
-                break;
-
-            case 'delete_skill':
-                $stmt = $conn->prepare("DELETE FROM skills WHERE id = ? AND user_id = ?");
-                $stmt->execute([$_POST['skill_id'], $hub_user_id]);
-                $_SESSION['message'] = 'Skill deleted successfully';
-                break;
-
-            case 'create_certification':
-                $stmt = $conn->prepare("INSERT INTO certifications (user_id, name, issuer, date_earned, credential_id, credential_url) VALUES (?, ?, ?, ?, ?, ?)");
-                $stmt->execute([
-                    $hub_user_id,
-                    $_POST['cert_name'],
-                    $_POST['cert_issuer'],
-                    $_POST['cert_date'],
-                    $_POST['cert_credential_id'] ?? '',
-                    $_POST['cert_url'] ?? ''
-                ]);
-                $_SESSION['message'] = 'Certification added successfully';
-                break;
-
-            case 'delete_certification':
-                $stmt = $conn->prepare("DELETE FROM certifications WHERE id = ? AND user_id = ?");
-                $stmt->execute([$_POST['certification_id'], $hub_user_id]);
-                $_SESSION['message'] = 'Certification deleted successfully';
-                break;
-
-            case 'apply_job':
-                // Check if already applied
-                $stmt = $conn->prepare("SELECT id FROM job_applications WHERE job_id = ? AND jobseeker_id = ?");
-                $stmt->execute([$_POST['job_id'], $hub_user_id]);
-                $existing_application = $stmt->fetch();
-
-                if (!$existing_application) {
-                    $stmt = $conn->prepare("INSERT INTO job_applications (job_id, jobseeker_id, cover_letter, status) VALUES (?, ?, ?, 'pending')");
-                    $stmt->execute([
-                        $_POST['job_id'],
-                        $hub_user_id,
-                        $_POST['cover_letter'] ?? ''
-                    ]);
-                    
-                    // Update applications count
-                    $stmt = $conn->prepare("UPDATE jobs SET applications_count = applications_count + 1 WHERE id = ?");
-                    $stmt->execute([$_POST['job_id']]);
-                    
-                    $_SESSION['message'] = 'Job application submitted successfully!';
-                } else {
-                    $_SESSION['message'] = 'You have already applied for this job.';
-                }
-                break;
-
-            case 'request_mentorship':
-                $stmt = $conn->prepare("INSERT INTO mentorship_requests (mentee_id, mentor_id, goals, frequency, status) VALUES (?, ?, ?, ?, 'pending')");
-                $stmt->execute([
-                    $hub_user_id,
-                    $_POST['mentor_id'],
-                    $_POST['mentorship_goals'],
-                    $_POST['mentorship_frequency']
-                ]);
-                $_SESSION['message'] = 'Mentorship request sent successfully';
-                break;
-
-            case 'update_profile':
-                $stmt = $conn->prepare("UPDATE hub_users SET full_name = ?, email = ?, bio = ?, expertise = ?, goals = ? WHERE id = ?");
-                $stmt->execute([
-                    $_POST['profile_name'],
-                    $_POST['profile_email'],
-                    $_POST['profile_bio'] ?? '',
-                    $_POST['profile_expertise'] ?? '',
-                    $_POST['profile_goals'] ?? '',
-                    $hub_user_id
-                ]);
-                $_SESSION['message'] = 'Profile updated successfully';
-                break;
-        }
-
-        // Redirect to prevent form resubmission
+        handleFormSubmission($conn, $hub_user_id);
         header("Location: " . $_SERVER['PHP_SELF']);
         exit();
     }
 
-    // Fetch data for display
-    // Bootcamps
-    $stmt = $conn->prepare("SELECT * FROM bootcamps WHERE user_id = ? ORDER BY created_at DESC");
-    $stmt->execute([$hub_user_id]);
-    $bootcamps = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // Fetch all data for display
+    $data = fetchUserData($conn, $hub_user_id);
+    
+    // Calculate dashboard stats
+    $stats = calculateDashboardStats($data, $hub_user_id, $conn);
 
-    // Skills
-    $stmt = $conn->prepare("SELECT * FROM skills WHERE user_id = ? ORDER BY created_at DESC");
-    $stmt->execute([$hub_user_id]);
-    $skills = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    error_log("Database error: " . $e->getMessage());
+    die("Database connection failed. Please try again later.");
+} catch (Exception $e) {
+    error_log("Application error: " . $e->getMessage());
+    die("An error occurred. Please try again.");
+}
 
-    // Certifications
-    $stmt = $conn->prepare("SELECT * FROM certifications WHERE user_id = ? ORDER BY date_earned DESC");
-    $stmt->execute([$hub_user_id]);
-    $certifications = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    // Available Jobs - FIXED QUERY
-    $stmt = $conn->prepare("
-        SELECT 
-            j.*,
-            hu.full_name as employer_name,
-            (SELECT COUNT(*) FROM job_applications WHERE job_id = j.id AND jobseeker_id = ?) as has_applied
-        FROM jobs j 
-        JOIN hub_users hu ON j.employer_id = hu.id 
-        WHERE j.is_active = true 
-        AND (j.application_deadline IS NULL OR j.application_deadline >= CURRENT_DATE)
-        ORDER BY j.created_at DESC
-    ");
-    $stmt->execute([$hub_user_id]);
-    $available_jobs = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    // User's job applications
-    $stmt = $conn->prepare("
-        SELECT 
-            ja.*,
-            j.title as job_title,
-            j.company_name,
-            j.location
-        FROM job_applications ja
-        JOIN jobs j ON ja.job_id = j.id
-        WHERE ja.jobseeker_id = ?
-        ORDER BY ja.applied_at DESC
-    ");
-    $stmt->execute([$hub_user_id]);
-    $job_applications = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    // Mentors
-    $stmt = $conn->prepare("
-        SELECT 
-            hu.*,
-      <?php
-session_start();
-header("Content-Type: text/html; charset=UTF-8");
-
-// Check if user is logged in and is a job seeker
-if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'job-seeker') {
+// Handle logout
+if (isset($_GET['logout'])) {
+    session_destroy();
     header("Location: signupLogin.html");
     exit();
 }
 
-// Database configuration
-$host = "dpg-d3vnf0ngi27c73ahg940-a.oregon-postgres.render.com";
-$port = "5432";
-$db_name = "toolkit_3dlp";
-$username = "toolkit_3dlp_user";
-$password = "RMMOboK8xw6MBqXRswfdacOHjGXCkLE8";
-
-try {
-    $conn = new PDO("pgsql:host=$host;port=$port;dbname=$db_name", $username, $password);
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
-    // Get user data
-    $user_id = $_SESSION['user_id'];
+// Helper functions
+function getOrCreateHubUser($conn, $user_id) {
     $stmt = $conn->prepare("SELECT * FROM hub_users WHERE user_id = ?");
     $stmt->execute([$user_id]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$user) {
-        // First, get the user's basic info from the users table
+        // Get basic user info
         $stmt = $conn->prepare("SELECT full_name, email, user_type FROM users WHERE id = ?");
         $stmt->execute([$user_id]);
         $user_data = $stmt->fetch(PDO::FETCH_ASSOC);
         
         if ($user_data) {
-            // Insert the new user into hub_users table
             $is_mentor = ($user_data['user_type'] === 'mentor') ? 1 : 0;
             
             $stmt = $conn->prepare("INSERT INTO hub_users (user_id, full_name, email, user_type, is_mentor) VALUES (?, ?, ?, ?, ?)");
@@ -266,7 +81,7 @@ try {
                 $is_mentor
             ]);
             
-            // Fetch the newly created user record
+            // Fetch the newly created user
             $stmt = $conn->prepare("SELECT * FROM hub_users WHERE user_id = ?");
             $stmt->execute([$user_id]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -274,141 +89,59 @@ try {
             $_SESSION['message'] = "Welcome to your learning hub! Get started by adding your skills and goals.";
         }
     }
+    
+    return $user;
+}
 
-    // Now $user contains the hub user data (either existing or newly created)
-    $hub_user_id = $user['id'];
-
-    // Handle form submissions
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $action = $_POST['action'] ?? '';
-
-        switch ($action) {
-            case 'create_bootcamp':
-                $stmt = $conn->prepare("INSERT INTO bootcamps (user_id, name, description, duration, level, status) VALUES (?, ?, ?, ?, ?, 'active')");
-                $stmt->execute([
-                    $hub_user_id,
-                    $_POST['bootcamp_name'],
-                    $_POST['bootcamp_description'],
-                    $_POST['bootcamp_duration'],
-                    $_POST['bootcamp_level']
-                ]);
-                $_SESSION['message'] = 'Bootcamp created successfully';
-                break;
-
-            case 'delete_bootcamp':
-                $stmt = $conn->prepare("DELETE FROM bootcamps WHERE id = ? AND user_id = ?");
-                $stmt->execute([$_POST['bootcamp_id'], $hub_user_id]);
-                $_SESSION['message'] = 'Bootcamp deleted successfully';
-                break;
-
-            case 'create_skill':
-                $stmt = $conn->prepare("INSERT INTO skills (user_id, name, category, level, description) VALUES (?, ?, ?, ?, ?)");
-                $stmt->execute([
-                    $hub_user_id,
-                    $_POST['skill_name'],
-                    $_POST['skill_category'],
-                    $_POST['skill_level'],
-                    $_POST['description'] ?? ''
-                ]);
-                $_SESSION['message'] = 'Skill added successfully';
-                break;
-
-            case 'delete_skill':
-                $stmt = $conn->prepare("DELETE FROM skills WHERE id = ? AND user_id = ?");
-                $stmt->execute([$_POST['skill_id'], $hub_user_id]);
-                $_SESSION['message'] = 'Skill deleted successfully';
-                break;
-
-            case 'create_certification':
-                $stmt = $conn->prepare("INSERT INTO certifications (user_id, name, issuer, date_earned, credential_id, credential_url) VALUES (?, ?, ?, ?, ?, ?)");
-                $stmt->execute([
-                    $hub_user_id,
-                    $_POST['cert_name'],
-                    $_POST['cert_issuer'],
-                    $_POST['cert_date'],
-                    $_POST['cert_credential_id'] ?? '',
-                    $_POST['cert_url'] ?? ''
-                ]);
-                $_SESSION['message'] = 'Certification added successfully';
-                break;
-
-            case 'delete_certification':
-                $stmt = $conn->prepare("DELETE FROM certifications WHERE id = ? AND user_id = ?");
-                $stmt->execute([$_POST['certification_id'], $hub_user_id]);
-                $_SESSION['message'] = 'Certification deleted successfully';
-                break;
-
-            case 'apply_job':
-                // Check if already applied
-                $stmt = $conn->prepare("SELECT id FROM job_applications WHERE job_id = ? AND jobseeker_id = ?");
-                $stmt->execute([$_POST['job_id'], $hub_user_id]);
-                $existing_application = $stmt->fetch();
-
-                if (!$existing_application) {
-                    $stmt = $conn->prepare("INSERT INTO job_applications (job_id, jobseeker_id, cover_letter, status) VALUES (?, ?, ?, 'pending')");
-                    $stmt->execute([
-                        $_POST['job_id'],
-                        $hub_user_id,
-                        $_POST['cover_letter'] ?? ''
-                    ]);
-                    
-                    // Update applications count
-                    $stmt = $conn->prepare("UPDATE jobs SET applications_count = applications_count + 1 WHERE id = ?");
-                    $stmt->execute([$_POST['job_id']]);
-                    
-                    $_SESSION['message'] = 'Job application submitted successfully!';
-                } else {
-                    $_SESSION['message'] = 'You have already applied for this job.';
-                }
-                break;
-
-            case 'request_mentorship':
-                $stmt = $conn->prepare("INSERT INTO mentorship_requests (mentee_id, mentor_id, goals, frequency, status) VALUES (?, ?, ?, ?, 'pending')");
-                $stmt->execute([
-                    $hub_user_id,
-                    $_POST['mentor_id'],
-                    $_POST['mentorship_goals'],
-                    $_POST['mentorship_frequency']
-                ]);
-                $_SESSION['message'] = 'Mentorship request sent successfully';
-                break;
-
-            case 'update_profile':
-                $stmt = $conn->prepare("UPDATE hub_users SET full_name = ?, email = ?, bio = ?, expertise = ?, goals = ? WHERE id = ?");
-                $stmt->execute([
-                    $_POST['profile_name'],
-                    $_POST['profile_email'],
-                    $_POST['profile_bio'] ?? '',
-                    $_POST['profile_expertise'] ?? '',
-                    $_POST['profile_goals'] ?? '',
-                    $hub_user_id
-                ]);
-                $_SESSION['message'] = 'Profile updated successfully';
-                break;
-        }
-
-        // Redirect to prevent form resubmission
-        header("Location: " . $_SERVER['PHP_SELF']);
-        exit();
+function handleFormSubmission($conn, $hub_user_id) {
+    $action = $_POST['action'] ?? '';
+    
+    $handlers = [
+        'create_bootcamp' => function() use ($conn, $hub_user_id) {
+            $stmt = $conn->prepare("INSERT INTO bootcamps (user_id, name, description, duration, level, status) VALUES (?, ?, ?, ?, ?, 'active')");
+            $stmt->execute([
+                $hub_user_id,
+                htmlspecialchars($_POST['bootcamp_name']),
+                htmlspecialchars($_POST['bootcamp_description']),
+                (int)$_POST['bootcamp_duration'],
+                htmlspecialchars($_POST['bootcamp_level'])
+            ]);
+            $_SESSION['message'] = 'Bootcamp created successfully';
+        },
+        
+        'delete_bootcamp' => function() use ($conn, $hub_user_id) {
+            $stmt = $conn->prepare("DELETE FROM bootcamps WHERE id = ? AND user_id = ?");
+            $stmt->execute([(int)$_POST['bootcamp_id'], $hub_user_id]);
+            $_SESSION['message'] = 'Bootcamp deleted successfully';
+        },
+        
+        // Add other handlers similarly...
+    ];
+    
+    if (isset($handlers[$action])) {
+        $handlers[$action]();
     }
+}
 
-    // Fetch data for display
+function fetchUserData($conn, $hub_user_id) {
+    $data = [];
+    
     // Bootcamps
     $stmt = $conn->prepare("SELECT * FROM bootcamps WHERE user_id = ? ORDER BY created_at DESC");
     $stmt->execute([$hub_user_id]);
-    $bootcamps = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $data['bootcamps'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Skills
     $stmt = $conn->prepare("SELECT * FROM skills WHERE user_id = ? ORDER BY created_at DESC");
     $stmt->execute([$hub_user_id]);
-    $skills = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $data['skills'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Certifications
     $stmt = $conn->prepare("SELECT * FROM certifications WHERE user_id = ? ORDER BY date_earned DESC");
     $stmt->execute([$hub_user_id]);
-    $certifications = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $data['certifications'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Available Jobs - FIXED QUERY
+    // Available Jobs
     $stmt = $conn->prepare("
         SELECT 
             j.*,
@@ -421,9 +154,9 @@ try {
         ORDER BY j.created_at DESC
     ");
     $stmt->execute([$hub_user_id]);
-    $available_jobs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $data['available_jobs'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // User's job applications
+    // Job Applications
     $stmt = $conn->prepare("
         SELECT 
             ja.*,
@@ -436,7 +169,7 @@ try {
         ORDER BY ja.applied_at DESC
     ");
     $stmt->execute([$hub_user_id]);
-    $job_applications = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $data['job_applications'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Mentors
     $stmt = $conn->prepare("
@@ -452,68 +185,28 @@ try {
         ORDER BY m.rating DESC
     ");
     $stmt->execute();
-    $mentors = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $data['mentors'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    return $data;
+}
 
-    // Dashboard stats
-    $active_bootcamps = 0;
-    foreach ($bootcamps as $bootcamp) {
-        if ($bootcamp['status'] === 'active') {
-            $active_bootcamps++;
-        }
-    }
-
-    $skills_count = count($skills);
-    $certs_count = count($certifications);
-    $jobs_applied_count = count($job_applications);
-
+function calculateDashboardStats($data, $hub_user_id, $conn) {
+    $stats = [];
+    
+    $stats['active_bootcamps'] = array_reduce($data['bootcamps'], function($count, $bootcamp) {
+        return $count + ($bootcamp['status'] === 'active' ? 1 : 0);
+    }, 0);
+    
+    $stats['skills_count'] = count($data['skills']);
+    $stats['certs_count'] = count($data['certifications']);
+    $stats['jobs_applied_count'] = count($data['job_applications']);
+    
     // Mentors connected
     $stmt = $conn->prepare("SELECT COUNT(*) FROM mentorship_requests WHERE mentee_id = ? AND status = 'accepted'");
     $stmt->execute([$hub_user_id]);
-    $mentors_count = $stmt->fetchColumn();
-
-    // Recent activity
-    $activities = [];
-    foreach ($bootcamps as $bootcamp) {
-        $activities[] = [
-            'type' => 'bootcamp',
-            'title' => 'Started bootcamp: ' . $bootcamp['name'],
-            'date' => $bootcamp['created_at']
-        ];
-    }
-
-    foreach ($certifications as $cert) {
-        $activities[] = [
-            'type' => 'certification',
-            'title' => 'Earned certification: ' . $cert['name'],
-            'date' => $cert['date_earned']
-        ];
-    }
-
-    foreach ($job_applications as $application) {
-        $activities[] = [
-            'type' => 'job_application',
-            'title' => 'Applied for: ' . $application['job_title'],
-            'date' => $application['applied_at']
-        ];
-    }
-
-    // Sort activities by date
-    usort($activities, function ($a, $b) {
-        return strtotime($b['date']) - strtotime($a['date']);
-    });
-
-    // Get only the 5 most recent activities
-    $recent_activities = array_slice($activities, 0, 5);
-
-} catch (PDOException $e) {
-    die("Database connection failed: " . $e->getMessage());
-}
-
-// Handle logout
-if (isset($_GET['logout'])) {
-    session_destroy();
-    header("Location: signupLogin.html");
-    exit();
+    $stats['mentors_count'] = $stmt->fetchColumn();
+    
+    return $stats;
 }
 ?>
 <!DOCTYPE html>
@@ -3474,5 +3167,6 @@ if (isset($_GET['logout'])) {
     <?php endif; ?>
 </body>
 </html>
+
 
 

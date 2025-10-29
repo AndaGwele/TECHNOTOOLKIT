@@ -140,6 +140,17 @@ try {
                 }
                 break;
 
+            case 'request_mentorship':
+                $stmt = $conn->prepare("INSERT INTO mentorship_requests (mentee_id, mentor_id, goals, frequency, status) VALUES (?, ?, ?, ?, 'pending')");
+                $stmt->execute([
+                    $hub_user_id,
+                    $_POST['mentor_id'],
+                    $_POST['mentorship_goals'],
+                    $_POST['mentorship_frequency']
+                ]);
+                $_SESSION['message'] = 'Mentorship request sent successfully';
+                break;
+
             case 'update_profile':
                 $stmt = $conn->prepare("UPDATE hub_users SET full_name = ?, email = ?, bio = ?, expertise = ?, goals = ? WHERE id = ?");
                 $stmt->execute([
@@ -205,6 +216,23 @@ try {
     $stmt->execute([$hub_user_id]);
     $job_applications = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+    // Mentors
+    $stmt = $conn->prepare("
+        SELECT 
+            hu.*,
+            m.expertise,
+            m.experience_years,
+            m.rating,
+            m.is_available
+        FROM hub_users hu
+        JOIN mentors m ON hu.id = m.user_id
+        WHERE m.is_available = true 
+        AND hu.user_type = 'mentor'
+        ORDER BY m.rating DESC
+    ");
+    $stmt->execute();
+    $mentors = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
     // Dashboard stats
     $active_bootcamps = 0;
     foreach ($bootcamps as $bootcamp) {
@@ -216,6 +244,11 @@ try {
     $skills_count = count($skills);
     $certs_count = count($certifications);
     $jobs_applied_count = count($job_applications);
+
+    // Mentors connected
+    $stmt = $conn->prepare("SELECT COUNT(*) FROM mentorship_requests WHERE mentee_id = ? AND status = 'accepted'");
+    $stmt->execute([$hub_user_id]);
+    $mentors_count = $stmt->fetchColumn();
 
     // Recent activity
     $activities = [];
@@ -361,6 +394,10 @@ if (isset($_GET['logout'])) {
         border-left: 4px solid #17a2b8;
     }
 
+    .mentor-card {
+        border-left: 4px solid #ffc107;
+    }
+
     .card-header {
         display: flex;
         justify-content: space-between;
@@ -394,6 +431,16 @@ if (isset($_GET['logout'])) {
         padding: 8px 15px;
         border-radius: 4px;
         cursor: not-allowed;
+        margin-top: 10px;
+    }
+
+    .request-btn {
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 4px;
+        cursor: pointer;
         margin-top: 10px;
     }
 
@@ -795,6 +842,7 @@ if (isset($_GET['logout'])) {
                 
                 <li><a href="#" data-section="jobs" class="nav-link">Job Opportunities</a></li>
                 <li><a href="#" data-section="applications" class="nav-link">My Applications</a></li>
+                <li><a href="#" data-section="mentorship" class="nav-link">Find Mentors</a></li>
                 <li><a href="#" class="nav-link" id="open-cvision-modal">Analyze CV</a></li>
                 <li><a href="#" data-section="profile" class="nav-link">Profile</a></li>
             </ul>
@@ -839,18 +887,18 @@ if (isset($_GET['logout'])) {
                     </div>
 
                     <div class="stat-card">
-                        <div class="stat-icon">⭐</div>
+                        <div class="stat-icon">👥</div>
                         <div class="stat-content">
-                            <h3>Skills Mastered</h3>
-                            <p class="stat-number"><?php echo $skills_count; ?></p>
+                            <h3>Mentors Connected</h3>
+                            <p class="stat-number"><?php echo $mentors_count; ?></p>
                         </div>
                     </div>
 
                     <div class="stat-card">
-                        <div class="stat-icon">🏆</div>
+                        <div class="stat-icon">⭐</div>
                         <div class="stat-content">
-                            <h3>Certifications</h3>
-                            <p class="stat-number"><?php echo $certs_count; ?></p>
+                            <h3>Skills Mastered</h3>
+                            <p class="stat-number"><?php echo $skills_count; ?></p>
                         </div>
                     </div>
 
@@ -1164,8 +1212,7 @@ if (isset($_GET['logout'])) {
                             </div>
                             <?php if ($job['application_deadline']): ?>
                             <div class="job-detail-item">
-                                <span class="job-detail-label">Application Deadline:</span> <?php echo date('M j, Y', strtotime($job['application_deadline'])); ?>
-                            </div>
+                                <span class="job-detail-label">Application Deadline:</span> <?php echo date('M j, Y', strtotime($job['application_deadline'])); ?></div>
                             <?php endif; ?>
                         </div>
                         
@@ -1275,6 +1322,66 @@ if (isset($_GET['logout'])) {
                 <?php endif; ?>
             </section>
 
+            <!-- Mentorship Section -->
+            <section id="mentorship" class="section">
+                <div class="section-header">
+                    <h2>Find Your Mentor</h2>
+                    <p>Connect with experienced professionals in your field</p>
+                </div>
+
+                <div class="mentorship-container">
+                    <!-- Mentors Grid -->
+                    <div class="mentors-grid" id="mentors-list">
+                        <?php if (empty($mentors)): ?>
+                        <p class="empty-state">No mentors available at the moment.</p>
+                        <?php else: ?>
+                        <?php foreach ($mentors as $mentor): ?>
+                        <div class="card mentor-card">
+                            <h3><?php echo htmlspecialchars($mentor['full_name']); ?></h3>
+                            <p><strong>Expertise:</strong> <?php echo htmlspecialchars($mentor['expertise']); ?></p>
+                            <p><strong>Experience:</strong> <?php echo $mentor['experience_years']; ?> years</p>
+                            <p><strong>Rating:</strong> <?php echo $mentor['rating']; ?>/5</p>
+                            <p><?php echo htmlspecialchars($mentor['bio']); ?></p>
+                            <button class="request-btn" data-mentor-id="<?php echo $mentor['id']; ?>"
+                                data-mentor-name="<?php echo htmlspecialchars($mentor['full_name']); ?>">Request
+                                Mentorship</button>
+                        </div>
+                        <?php endforeach; ?>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
+                <!-- Mentor Request Modal -->
+                <div id="mentor-modal" class="modal">
+                    <div class="modal-content">
+                        <span class="close">&times;</span>
+                        <h3>Request Mentorship</h3>
+                        <form method="post">
+                            <input type="hidden" name="action" value="request_mentorship">
+                            <input type="hidden" id="mentor-id" name="mentor_id" value="">
+                            <div class="form-group">
+                                <label for="mentor-name">Mentor</label>
+                                <input type="text" id="mentor-name" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label for="mentorship-goals">Your Goals</label>
+                                <textarea id="mentorship-goals" name="mentorship_goals" rows="4"
+                                    placeholder="What do you want to achieve?" required></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="mentorship-frequency">Preferred Frequency</label>
+                                <select id="mentorship-frequency" name="mentorship_frequency" required>
+                                    <option value="weekly">Weekly</option>
+                                    <option value="biweekly">Bi-weekly</option>
+                                    <option value="monthly">Monthly</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Send Request</button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
             <!-- Profile Section -->
             <section id="profile" class="section">
                 <div class="section-header">
@@ -1315,65 +1422,65 @@ if (isset($_GET['logout'])) {
                     </form>
                 </div>
             </section>
+        </main>
+    </div>
 
-            <!-- CVision Modal -->
-            <div id="cvision-modal" class="modal">
-                <div class="modal-content" style="width: 95%; max-width: 1000px; max-height: 90vh; overflow-y: auto;">
-                    <span class="close">&times;</span>
-                    
-                    <div class="form-card">
-                        <div class="card-header">
-                            <h2 style="margin: 0;">Resume Analysis</h2>
-                        </div>
+    <!-- CVision Modal -->
+    <div id="cvision-modal" class="modal">
+        <div class="modal-content" style="width: 95%; max-width: 1000px; max-height: 90vh; overflow-y: auto;">
+            <span class="close">&times;</span>
+            
+            <div class="form-card">
+                <div class="card-header">
+                    <h2 style="margin: 0;">Resume Analysis</h2>
+                </div>
 
-                        <div class="form-group">
-                            <label for="cvision-document-upload">Upload Your Resume (PDF, max 5MB):</label>
-                            <input type="file" id="cvision-document-upload" accept=".pdf" />
-                        </div>
+                <div class="form-group">
+                    <label for="cvision-document-upload">Upload Your Resume (PDF, max 5MB):</label>
+                    <input type="file" id="cvision-document-upload" accept=".pdf" />
+                </div>
 
-                        <div class="form-group">
-                            <label for="cvision-job-description">Job Description:</label>
-                            <textarea
-                                id="cvision-job-description"
-                                placeholder="Paste the job description here..."
-                                rows="6"></textarea>
-                        </div>
+                <div class="form-group">
+                    <label for="cvision-job-description">Job Description:</label>
+                    <textarea
+                        id="cvision-job-description"
+                        placeholder="Paste the job description here..."
+                        rows="6"></textarea>
+                </div>
 
-                        <button type="button" class="btn btn-primary" id="cvision-analyze-btn">
-                            Analyze Resume
-                        </button>
-                    </div>
+                <button type="button" class="btn btn-primary" id="cvision-analyze-btn">
+                    Analyze Resume
+                </button>
+            </div>
 
-                    <div id="cvision-loading" class="loading" style="display: none;">
-                        <p>Processing your resume and analyzing against job description...</p>
-                    </div>
+            <div id="cvision-loading" class="loading" style="display: none;">
+                <p>Processing your resume and analyzing against job description...</p>
+            </div>
 
-                    <!-- AI Feedback Results -->
-                    <div id="cvision-ai-feedback" class="result-card" style="display: none;">
-                        <div class="card-header">
-                            <h3>AI Analysis & Recommendations</h3>
-                        </div>
-                        <div id="cvision-feedback-content"></div>
-                    </div>
+            <!-- AI Feedback Results -->
+            <div id="cvision-ai-feedback" class="result-card" style="display: none;">
+                <div class="card-header">
+                    <h3>AI Analysis & Recommendations</h3>
+                </div>
+                <div id="cvision-feedback-content"></div>
+            </div>
 
-                    <!-- Fallback Keyword Match -->
-                    <div id="cvision-match-result" class="result-card" style="display: none;">
-                        <div class="card-header">
-                            <h3>Basic Keyword Analysis</h3>
-                        </div>
-                        <div class="match-result">
-                            <p><strong>AI unavailable. Showing basic keyword match analysis.</strong></p>
-                            <p><strong>Match Percentage:</strong> <span id="cvision-match-percentage"></span>%</p>
-                            <p><strong>Missing Keywords:</strong> <span id="cvision-missing-keywords"></span></p>
-                        </div>
-                    </div>
-
-                    <div id="cvision-success-text" class="success-text" style="display: none;">
-                        ✅ Resume text successfully extracted and ready for analysis
-                    </div>
+            <!-- Fallback Keyword Match -->
+            <div id="cvision-match-result" class="result-card" style="display: none;">
+                <div class="card-header">
+                    <h3>Basic Keyword Analysis</h3>
+                </div>
+                <div class="match-result">
+                    <p><strong>AI unavailable. Showing basic keyword match analysis.</strong></p>
+                    <p><strong>Match Percentage:</strong> <span id="cvision-match-percentage"></span>%</p>
+                    <p><strong>Missing Keywords:</strong> <span id="cvision-missing-keywords"></span></p>
                 </div>
             </div>
-        </main>
+
+            <div id="cvision-success-text" class="success-text" style="display: none;">
+                ✅ Resume text successfully extracted and ready for analysis
+            </div>
+        </div>
     </div>
 
     <script>
@@ -1542,6 +1649,30 @@ if (isset($_GET['logout'])) {
                 });
             });
 
+            // Mentor request modal
+            const requestButtons = document.querySelectorAll('.request-btn');
+            requestButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const mentorId = this.getAttribute('data-mentor-id');
+                    const mentorName = this.getAttribute('data-mentor-name');
+
+                    document.getElementById('mentor-id').value = mentorId;
+                    document.getElementById('mentor-name').value = mentorName;
+                    document.getElementById('mentor-modal').style.display = 'block';
+                });
+            });
+
+            // CVision Modal
+            const openCvisionBtn = document.getElementById('open-cvision-modal');
+            const cvisionModal = document.getElementById('cvision-modal');
+            
+            if (openCvisionBtn) {
+                openCvisionBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    cvisionModal.style.display = 'block';
+                });
+            }
+
             // Close modals
             closeButtons.forEach(button => {
                 button.addEventListener('click', function() {
@@ -1606,3 +1737,4 @@ if (isset($_GET['logout'])) {
     <?php endif; ?>
 </body>
 </html>
+

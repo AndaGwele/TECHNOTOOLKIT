@@ -546,6 +546,7 @@ if (isset($_GET['logout'])) {
             display: flex;
             border-bottom: 2px solid #e9ecef;
             margin-bottom: 20px;
+            flex-wrap: wrap;
         }
 
         .nav-tab {
@@ -571,6 +572,106 @@ if (isset($_GET['logout'])) {
 
         .tab-content.active {
             display: block;
+        }
+
+        /* How It Works Section Styles */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .feature-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid #2c5530;
+        }
+
+        .feature-card h3 {
+            color: #2c5530;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .feature-icon {
+            font-size: 1.5em;
+        }
+
+        .tech-specs {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .tech-specs th,
+        .tech-specs td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .tech-specs th {
+            background: #2c5530;
+            color: white;
+            font-weight: 600;
+        }
+
+        .tech-specs tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .demo-controls {
+            background: #e8f5e8;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .stock-display {
+            font-size: 2em;
+            font-weight: bold;
+            color: #2c5530;
+            margin: 10px 0;
+        }
+
+        .simulation-container {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .simulation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .sensor-data {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .sensor-item {
+            background: #34495e;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .sensor-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #2ecc71;
         }
     </style>
 </head>
@@ -630,6 +731,7 @@ if (isset($_GET['logout'])) {
             <button class="nav-tab active" data-tab="inventory">📦 Inventory Management</button>
             <button class="nav-tab" data-tab="talent">🎯 Talent Discovery</button>
             <button class="nav-tab" data-tab="potential">⭐ Potential Candidates</button>
+            <button class="nav-tab" data-tab="how-it-works">🔧 How It Works</button>
         </div>
 
         <!-- Inventory Management Tab -->
@@ -694,135 +796,284 @@ if (isset($_GET['logout'])) {
             </div>
         </div>
 
-       <!-- Talent Discovery Tab -->
-<div id="talent" class="tab-content">
-    <div class="section">
-        <div class="section-header">
-            <h2>Discover Skilled Job Seekers</h2>
-            <p>Browse and connect with talented individuals</p>
+        <!-- Talent Discovery Tab -->
+        <div id="talent" class="tab-content">
+            <div class="section">
+                <div class="section-header">
+                    <h2>Discover Skilled Job Seekers</h2>
+                    <p>Browse and connect with talented individuals</p>
+                </div>
+
+                <?php if (empty($jobseekers)): ?>
+                    <div class="empty-state">
+                        <p>No job seekers available at the moment.</p>
+                    </div>
+                <?php else: ?>
+                    <div class="candidates-list">
+                        <?php foreach ($jobseekers as $jobseeker): ?>
+                            <div class="card">
+                                <div class="card-header">
+                                    <div>
+                                        <h3 class="candidate-name"><?php echo htmlspecialchars($jobseeker['full_name']); ?></h3>
+                                        <p class="candidate-email"><?php echo htmlspecialchars($jobseeker['email']); ?></p>
+                                        <?php if (!empty($jobseeker['expertise'])): ?>
+                                            <p><strong>Expertise:</strong> <?php echo htmlspecialchars($jobseeker['expertise']); ?>
+                                            </p>
+                                        <?php endif; ?>
+                                        <?php if (!empty($jobseeker['bio'])): ?>
+                                            <p><?php echo htmlspecialchars($jobseeker['bio']); ?></p>
+                                        <?php endif; ?>
+                                    </div>
+                                    <button class="btn btn-success add-candidate-btn" 
+                                        data-jobseeker-id="<?php echo $jobseeker['id']; ?>" 
+                                        data-jobseeker-name="<?php echo htmlspecialchars($jobseeker['full_name']); ?>">
+                                        Add to Potential List
+                                    </button>
+                                </div>
+
+                                <?php if (!empty($jobseeker['skills']) && is_array($jobseeker['skills'])): ?>
+                                    <div class="skills-list">
+                                        <strong>Skills:</strong>
+                                        <?php foreach ($jobseeker['skills'] as $skill): ?>
+                                            <?php if (!empty($skill)): ?>
+                                                <span class="skill-tag"><?php echo htmlspecialchars($skill); ?></span>
+                                            <?php endif; ?>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php endif; ?>
+
+                                <?php if (!empty($jobseeker['certifications']) && is_array($jobseeker['certifications'])): ?>
+                                    <div class="certs-list">
+                                        <strong>Certifications:</strong>
+                                        <?php foreach ($jobseeker['certifications'] as $cert): ?>
+                                            <?php if (!empty($cert)): ?>
+                                                <span class="cert-tag"><?php echo htmlspecialchars($cert); ?></span>
+                                            <?php endif; ?>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
         </div>
 
-        <?php if (empty($jobseekers)): ?>
-            <div class="empty-state">
-                <p>No job seekers available at the moment.</p>
-            </div>
-        <?php else: ?>
-            <div class="candidates-list">
-                <?php foreach ($jobseekers as $jobseeker): ?>
-                    <div class="card">
-                        <div class="card-header">
-                            <div>
-                                <h3 class="candidate-name"><?php echo htmlspecialchars($jobseeker['full_name']); ?></h3>
-                                <p class="candidate-email"><?php echo htmlspecialchars($jobseeker['email']); ?></p>
-                                <?php if (!empty($jobseeker['expertise'])): ?>
-                                    <p><strong>Expertise:</strong> <?php echo htmlspecialchars($jobseeker['expertise']); ?>
-                                    </p>
-                                <?php endif; ?>
-                                <?php if (!empty($jobseeker['bio'])): ?>
-                                    <p><?php echo htmlspecialchars($jobseeker['bio']); ?></p>
-                                <?php endif; ?>
-                            </div>
-                            <button class="btn btn-success add-candidate-btn" 
-                                data-jobseeker-id="<?php echo $jobseeker['id']; ?>" 
-                                data-jobseeker-name="<?php echo htmlspecialchars($jobseeker['full_name']); ?>">
-                                Add to Potential List
-                            </button>
-                        </div>
+        <!-- Potential Candidates Tab -->
+        <div id="potential" class="tab-content">
+            <div class="section">
+                <div class="section-header">
+                    <h2>Your Potential Candidates</h2>
+                    <p>Manage your shortlisted talent</p>
+                </div>
 
-                        <?php if (!empty($jobseeker['skills']) && is_array($jobseeker['skills'])): ?>
-                            <div class="skills-list">
-                                <strong>Skills:</strong>
-                                <?php foreach ($jobseeker['skills'] as $skill): ?>
-                                    <?php if (!empty($skill)): ?>
-                                        <span class="skill-tag"><?php echo htmlspecialchars($skill); ?></span>
-                                    <?php endif; ?>
-                                <?php endforeach; ?>
-                            </div>
-                        <?php endif; ?>
-
-                        <?php if (!empty($jobseeker['certifications']) && is_array($jobseeker['certifications'])): ?>
-                            <div class="certs-list">
-                                <strong>Certifications:</strong>
-                                <?php foreach ($jobseeker['certifications'] as $cert): ?>
-                                    <?php if (!empty($cert)): ?>
-                                        <span class="cert-tag"><?php echo htmlspecialchars($cert); ?></span>
-                                    <?php endif; ?>
-                                <?php endforeach; ?>
-                            </div>
-                        <?php endif; ?>
+                <?php if (empty($potential_candidates)): ?>
+                    <div class="empty-state">
+                        <p>No potential candidates yet. Start discovering talent!</p>
                     </div>
-                <?php endforeach; ?>
-            </div>
-        <?php endif; ?>
-    </div>
-</div>
+                <?php else: ?>
+                    <div class="candidates-list">
+                        <?php foreach ($potential_candidates as $candidate): ?>
+                            <div class="card">
+                                <div class="card-header">
+                                    <div>
+                                        <h3 class="candidate-name"><?php echo htmlspecialchars($candidate['full_name']); ?></h3>
+                                        <p class="candidate-email"><?php echo htmlspecialchars($candidate['email']); ?></p>
+                                        <?php if (!empty($candidate['expertise'])): ?>
+                                            <p><strong>Expertise:</strong> <?php echo htmlspecialchars($candidate['expertise']); ?>
+                                            </p>
+                                        <?php endif; ?>
+                                        <?php if (!empty($candidate['notes'])): ?>
+                                            <p><strong>Your Notes:</strong> <?php echo htmlspecialchars($candidate['notes']); ?></p>
+                                        <?php endif; ?>
+                                        <p><small>Added on:
+                                                <?php echo date('M j, Y', strtotime($candidate['created_at'])); ?></small></p>
+                                    </div>
+                                    <form method="post" style="display: inline;">
+                                        <input type="hidden" name="action" value="remove_from_potential_list">
+                                        <input type="hidden" name="candidate_id"
+                                            value="<?php echo $candidate['candidate_id']; ?>">
+                                        <button type="submit" class="btn btn-danger"
+                                            onclick="return confirm('Remove this candidate from your list?')">Remove</button>
+                                    </form>
+                                </div>
 
-<!-- Potential Candidates Tab -->
-<div id="potential" class="tab-content">
-    <div class="section">
-        <div class="section-header">
-            <h2>Your Potential Candidates</h2>
-            <p>Manage your shortlisted talent</p>
+                                <?php if (!empty($candidate['skills']) && is_array($candidate['skills'])): ?>
+                                    <div class="skills-list">
+                                        <strong>Skills:</strong>
+                                        <?php foreach ($candidate['skills'] as $skill): ?>
+                                            <?php if (!empty($skill)): ?>
+                                                <span class="skill-tag"><?php echo htmlspecialchars($skill); ?></span>
+                                            <?php endif; ?>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php endif; ?>
+
+                                <?php if (!empty($candidate['certifications']) && is_array($candidate['certifications'])): ?>
+                                    <div class="certs-list">
+                                        <strong>Certifications:</strong>
+                                        <?php foreach ($candidate['certifications'] as $cert): ?>
+                                            <?php if (!empty($cert)): ?>
+                                                <span class="cert-tag"><?php echo htmlspecialchars($cert); ?></span>
+                                            <?php endif; ?>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
         </div>
 
-        <?php if (empty($potential_candidates)): ?>
-            <div class="empty-state">
-                <p>No potential candidates yet. Start discovering talent!</p>
-            </div>
-        <?php else: ?>
-            <div class="candidates-list">
-                <?php foreach ($potential_candidates as $candidate): ?>
-                    <div class="card">
-                        <div class="card-header">
-                            <div>
-                                <h3 class="candidate-name"><?php echo htmlspecialchars($candidate['full_name']); ?></h3>
-                                <p class="candidate-email"><?php echo htmlspecialchars($candidate['email']); ?></p>
-                                <?php if (!empty($candidate['expertise'])): ?>
-                                    <p><strong>Expertise:</strong> <?php echo htmlspecialchars($candidate['expertise']); ?>
-                                    </p>
-                                <?php endif; ?>
-                                <?php if (!empty($candidate['notes'])): ?>
-                                    <p><strong>Your Notes:</strong> <?php echo htmlspecialchars($candidate['notes']); ?></p>
-                                <?php endif; ?>
-                                <p><small>Added on:
-                                        <?php echo date('M j, Y', strtotime($candidate['created_at'])); ?></small></p>
-                            </div>
-                            <form method="post" style="display: inline;">
-                                <input type="hidden" name="action" value="remove_from_potential_list">
-                                <input type="hidden" name="candidate_id"
-                                    value="<?php echo $candidate['candidate_id']; ?>">
-                                <button type="submit" class="btn btn-danger"
-                                    onclick="return confirm('Remove this candidate from your list?')">Remove</button>
-                            </form>
+        <!-- How It Works Tab -->
+        <div id="how-it-works" class="tab-content">
+            <div class="section">
+                <div class="section-header">
+                    <h2>How It Works - Smart Inventory System</h2>
+                    <p>Interactive IoT-based inventory management solution</p>
+                </div>
+
+                <!-- Interactive Simulation Demo -->
+                <div class="simulation-container">
+                    <div class="simulation-header">
+                        <h3>🔄 Interactive Wokwi Simulation (ESP32 / Arduino)</h3>
+                        <div class="demo-controls">
+                            <h4>Demo Controls</h4>
+                            <div class="stock-display">Stock: 42</div>
+                            <p>Watch LED indicators for low stock and monitor temperature in real time.</p>
                         </div>
-
-                        <?php if (!empty($candidate['skills']) && is_array($candidate['skills'])): ?>
-                            <div class="skills-list">
-                                <strong>Skills:</strong>
-                                <?php foreach ($candidate['skills'] as $skill): ?>
-                                    <?php if (!empty($skill)): ?>
-                                        <span class="skill-tag"><?php echo htmlspecialchars($skill); ?></span>
-                                    <?php endif; ?>
-                                <?php endforeach; ?>
-                            </div>
-                        <?php endif; ?>
-
-                        <?php if (!empty($candidate['certifications']) && is_array($candidate['certifications'])): ?>
-                            <div class="certs-list">
-                                <strong>Certifications:</strong>
-                                <?php foreach ($candidate['certifications'] as $cert): ?>
-                                    <?php if (!empty($cert)): ?>
-                                        <span class="cert-tag"><?php echo htmlspecialchars($cert); ?></span>
-                                    <?php endif; ?>
-                                <?php endforeach; ?>
-                            </div>
-                        <?php endif; ?>
                     </div>
-                <?php endforeach; ?>
+                    
+                    <div class="sensor-data">
+                        <div class="sensor-item">
+                            <div>📊 Stock Level</div>
+                            <div class="sensor-value">42</div>
+                            <div>Items</div>
+                        </div>
+                        <div class="sensor-item">
+                            <div>🌡️ Temperature</div>
+                            <div class="sensor-value">23.5°C</div>
+                            <div>DS18B20 Sensor</div>
+                        </div>
+                        <div class="sensor-item">
+                            <div>⚠️ Stock Status</div>
+                            <div class="sensor-value" style="color: #2ecc71;">Normal</div>
+                            <div>LED: Green</div>
+                        </div>
+                        <div class="sensor-item">
+                            <div>📱 Notifications</div>
+                            <div class="sensor-value" style="color: #f39c12;">Active</div>
+                            <div>Mobile Alerts</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product Features -->
+                <h3 style="margin-top: 30px; color: #2c5530;">Product Features</h3>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <h3><span class="feature-icon">📊</span> Real-time Stock Monitoring</h3>
+                        <p>Track inventory 24/7 with live updates and visual indicators</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3><span class="feature-icon">🌐</span> Web Dashboard</h3>
+                        <p>Monitor remotely from any device with our responsive interface</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3><span class="feature-icon">🌡️</span> Temperature Tracking</h3>
+                        <p>DS18B20 sensor integration for environmental monitoring</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3><span class="feature-icon">📱</span> Mobile App</h3>
+                        <p>iOS and Android support for on-the-go management</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3><span class="feature-icon">⚠️</span> Low Stock Alerts</h3>
+                        <p>LED indicators + Mobile notifications for proactive management</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3><span class="feature-icon">📈</span> Historical Analytics</h3>
+                        <p>Trends analysis and comprehensive reporting tools</p>
+                    </div>
+                </div>
+
+                <!-- Technical Specifications -->
+                <h3 style="margin-top: 30px; color: #2c5530;">Technical Specifications</h3>
+                <table class="tech-specs">
+                    <thead>
+                        <tr>
+                            <th>Component</th>
+                            <th>Specification</th>
+                            <th>Purpose</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Microcontroller</strong></td>
+                            <td>Arduino Uno / ATmega328P</td>
+                            <td>Brain of the system - processes all sensor data and controls</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Display</strong></td>
+                            <td>16x2 I2C LCD</td>
+                            <td>Real-time data display for local monitoring</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Sensor</strong></td>
+                            <td>DS18B20</td>
+                            <td>Precision temperature monitoring</td>
+                        </tr>
+                        <tr>
+                            <td><strong>LED Indicators</strong></td>
+                            <td>Red, Green, Yellow</td>
+                            <td>Visual alerts for stock status</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Communication</strong></td>
+                            <td>ESP8266 WiFi Module</td>
+                            <td>Cloud connectivity for remote monitoring</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Power</strong></td>
+                            <td>5V DC / USB Power</td>
+                            <td>Stable power supply for continuous operation</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- System Architecture -->
+                <h3 style="margin-top: 30px; color: #2c5530;">System Architecture</h3>
+                <div class="card">
+                    <h4>🔄 IoT Data Flow</h4>
+                    <p><strong>Hardware Layer:</strong> ESP32/Arduino + Sensors + LED Indicators</p>
+                    <p><strong>Communication Layer:</strong> WiFi Module + MQTT Protocol</p>
+                    <p><strong>Application Layer:</strong> Web Dashboard + Mobile App + Database</p>
+                    <p><strong>User Interface:</strong> Real-time Monitoring + Analytics + Alerts</p>
+                </div>
+
+                <!-- Implementation Benefits -->
+                <h3 style="margin-top: 30px; color: #2c5530;">Implementation Benefits</h3>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <h3>💰 Cost Reduction</h3>
+                        <p>Minimize stockouts and overstocking through precise monitoring</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>⏱️ Time Efficiency</h3>
+                        <p>Automated tracking reduces manual counting by 80%</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>📈 Data Accuracy</h3>
+                        <p>Real-time updates ensure 99% inventory accuracy</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>🚀 Scalability</h3>
+                        <p>Modular design supports business growth and expansion</p>
+                    </div>
+                </div>
             </div>
-        <?php endif; ?>
-    </div>
-</div>
+        </div>
 
     <!-- Add Inventory Modal -->
     <div id="inventory-modal" class="modal">
@@ -961,6 +1212,36 @@ if (isset($_GET['logout'])) {
             }
         });
 
+        // Interactive simulation for How It Works section
+        function updateSimulation() {
+            const stockDisplay = document.querySelector('.stock-display');
+            const sensorValues = document.querySelectorAll('.sensor-value');
+            
+            // Simulate random stock changes
+            const currentStock = parseInt(stockDisplay.textContent.split(': ')[1]);
+            const newStock = Math.max(0, currentStock + Math.floor(Math.random() * 3) - 1);
+            
+            stockDisplay.textContent = `Stock: ${newStock}`;
+            sensorValues[0].textContent = newStock;
+            
+            // Update temperature
+            const currentTemp = parseFloat(sensorValues[1].textContent);
+            const newTemp = (currentTemp + (Math.random() - 0.5)).toFixed(1);
+            sensorValues[1].textContent = `${newTemp}°C`;
+            
+            // Update stock status
+            if (newStock < 10) {
+                sensorValues[2].textContent = 'Low Stock';
+                sensorValues[2].style.color = '#e74c3c';
+            } else {
+                sensorValues[2].textContent = 'Normal';
+                sensorValues[2].style.color = '#2ecc71';
+            }
+        }
+
+        // Update simulation every 5 seconds
+        setInterval(updateSimulation, 5000);
+
         // Initialize the page
         document.addEventListener('DOMContentLoaded', () => {
             console.log('Entrepreneur Dashboard loaded successfully');
@@ -968,4 +1249,3 @@ if (isset($_GET['logout'])) {
     </script>
 </body>
 </html>
-

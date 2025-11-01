@@ -31,6 +31,7 @@
             line-height: 1.6;
             color: var(--dark);
             background-color: var(--light);
+            scroll-behavior: smooth;
         }
 
         h1, h2, h3, h4 {
@@ -209,7 +210,6 @@
         }
 
         /* Hero Section */
-        /* linear-gradient(rgba(37, 99, 235, 0.9), rgba(37, 99, 235, 0.8)), */
         .hero {
             background: url('https://images.unsplash.com/photo-1521737711867-e3b97375f902?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80');
             background-size: cover;
@@ -291,6 +291,85 @@
             left: 0;
             color: var(--secondary);
             font-weight: bold;
+        }
+
+        /* Detailed Solution Sections */
+        .solution-detail-section {
+            background-color: white;
+        }
+
+        .solution-detail-section:nth-child(even) {
+            background-color: #f8fafc;
+        }
+
+        .solution-detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .solution-content h2 {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+        }
+
+        .solution-content h3 {
+            font-size: 1.5rem;
+            color: var(--dark);
+            margin: 2rem 0 1rem;
+        }
+
+        .solution-features {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .feature-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .solution-visual {
+            text-align: center;
+        }
+
+        .solution-visual img {
+            max-width: 100%;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        .tech-stack {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin: 1.5rem 0;
+        }
+
+        .tech-tag {
+            background: var(--light);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            color: var(--neutral);
+            border: 1px solid #e2e8f0;
         }
 
         /* Problem Section */
@@ -558,47 +637,36 @@
 
         /* Responsive Design */
         @media (max-width: 768px) {
-
-        .nav-links {
-        position: absolute;
-        top: 100%;
-        left: 0;
-        right: 0;
-        width: 100%;
-        background: white;
-        box-shadow: var(--shadow);
-        border-radius: 0 0 var(--radius) var(--radius);
-        flex-direction: column;
-        align-items: flex-start;
-        padding: 0.5rem 0;
-        z-index: 999;
-
-        /*  animation setup */
-        max-height: 0;
-        opacity: 0;
-        overflow: hidden;
-        transform: translateY(-10px);
-        transition:
-            max-height 0.4s ease,
-            opacity 0.3s ease,
-            transform 0.4s ease;
-        }
-
-        /* When open, smoothly roll down */
-        .nav-links.open {
-        display: flex;
-        max-height: 300px;
-        opacity: 1;
-        transform: translateY(0);
-        }
-
-
-            /* visible when open (JS will toggle this class) */
-            .nav-links.open {
-                display: flex;
+            .nav-links {
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                width: 100%;
+                background: white;
+                box-shadow: var(--shadow);
+                border-radius: 0 0 var(--radius) var(--radius);
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 0.5rem 0;
+                z-index: 999;
+                max-height: 0;
+                opacity: 0;
+                overflow: hidden;
+                transform: translateY(-10px);
+                transition:
+                    max-height 0.4s ease,
+                    opacity 0.3s ease,
+                    transform 0.4s ease;
             }
 
-            /* make nav items full-width with comfortable touch target */
+            .nav-links.open {
+                display: flex;
+                max-height: 300px;
+                opacity: 1;
+                transform: translateY(0);
+            }
+
             .nav-links li {
                 margin: 0;
                 width: 100%;
@@ -638,6 +706,15 @@
             .cta-buttons {
                 flex-direction: column;
             }
+
+            .solution-detail-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .solution-features {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
         <link
@@ -656,15 +733,14 @@
                         <li class="dropdown">
                             <a href="#">Solutions ▾</a>
                             <div class="dropdown-content">
-                                <a href="#">Skills & Mentorship Hub</a>
-                                <a href="#">CV Optimizer (CVision)</a>
-                                <a href="#">Talent Connector</a>
-                                <a href="#">Smart Inventory Tracker</a>
+                                <a href="#skills-hub">Skills & Mentorship Hub</a>
+                                <a href="#cv-optimizer">CV Optimizer (CVision)</a>
+                                <a href="#talent-connector">Talent Connector</a>
+                                <a href="#inventory-tracker">Smart Inventory Tracker</a>
                             </div>
                         </li>
                         <li><a href="signupLogin.html"
                                 class="btn btn-outline">Sign In</a></li>
-
                     </ul>
 
                     <button class="mobile-menu-btn">☰</button>
@@ -710,7 +786,7 @@
                             <li>Industry Certifications</li>
                             <li>Career Guidance</li>
                         </ul>
-                        <a href="signupLogin.html" class="btn btn-primary">Learn
+                        <a href="#skills-hub" class="btn btn-primary">Learn
                             More</a>
                     </div>
 
@@ -726,7 +802,7 @@
                             <li>Formatting Templates</li>
                             <li>Instant Feedback</li>
                         </ul>
-                        <a href="signupLogin.html" class="btn btn-primary">Try
+                        <a href="#cv-optimizer" class="btn btn-primary">Try
                             CVision</a>
                     </div>
 
@@ -742,7 +818,7 @@
                             <li>Employer Dashboard</li>
                             <li>Performance Analytics</li>
                         </ul>
-                        <a href="signupLogin.html" class="btn btn-primary">Find
+                        <a href="#talent-connector" class="btn btn-primary">Find
                             Talent</a>
                     </div>
 
@@ -758,8 +834,251 @@
                             <li>Low Stock Alerts</li>
                             <li>Sales Forecasting</li>
                         </ul>
-                        <a href="signupLogin.html" class="btn btn-primary">See
+                        <a href="#inventory-tracker" class="btn btn-primary">See
                             Demo</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Detailed Solution Sections -->
+        
+        <!-- Skills & Mentorship Hub -->
+        <section id="skills-hub" class="solution-detail-section">
+            <div class="container">
+                <div class="solution-detail-grid">
+                    <div class="solution-content">
+                        <h2>Skills & Mentorship Hub</h2>
+                        <p>Transform your career with personalized learning paths and direct access to industry mentors. Our platform bridges the gap between education and employment through targeted skill development.</p>
+                        
+                        <div class="solution-features">
+                            <div class="feature-item">
+                                <div class="feature-icon">🎯</div>
+                                <div>
+                                    <h4>Personalized Learning</h4>
+                                    <p>AI-powered recommendations based on your career goals and skill gaps</p>
+                                </div>
+                            </div>
+                            <div class="feature-item">
+                                <div class="feature-icon">👥</div>
+                                <div>
+                                    <h4>Expert Mentors</h4>
+                                    <p>Connect with industry professionals for 1-on-1 guidance and career advice</p>
+                                </div>
+                            </div>
+                            <div class="feature-item">
+                                <div class="feature-icon">📊</div>
+                                <div>
+                                    <h4>Progress Tracking</h4>
+                                    <p>Monitor your learning journey with detailed analytics and milestone tracking</p>
+                                </div>
+                            </div>
+                            <div class="feature-item">
+                                <div class="feature-icon">🏆</div>
+                                <div>
+                                    <h4>Certifications</h4>
+                                    <p>Earn industry-recognized certificates to validate your skills</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h3>How It Works</h3>
+                        <p>1. Complete your skills assessment → 2. Receive personalized learning path → 3. Connect with matched mentors → 4. Build projects and earn certifications → 5. Get job-ready</p>
+
+                        <div class="tech-stack">
+                            <span class="tech-tag">AI/ML Algorithms</span>
+                            <span class="tech-tag">Learning Management System</span>
+                            <span class="tech-tag">Video Conferencing</span>
+                            <span class="tech-tag">Progress Analytics</span>
+                        </div>
+
+                        <a href="signupLogin.html" class="btn btn-primary">Start Your Learning Journey</a>
+                    </div>
+                    <div class="solution-visual">
+                        <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Skills & Mentorship Hub">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CV Optimizer -->
+        <section id="cv-optimizer" class="solution-detail-section">
+            <div class="container">
+                <div class="solution-detail-grid">
+                    <div class="solution-visual">
+                        <img src="https://images.unsplash.com/photo-1586281380349-632531db7ed4?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="CV Optimizer">
+                    </div>
+                    <div class="solution-content">
+                        <h2>CV Optimizer (CVision)</h2>
+                        <p>Beat the ATS and get noticed by employers. Our intelligent resume builder analyzes job descriptions and optimizes your CV with the right keywords and formatting.</p>
+                        
+                        <div class="solution-features">
+                            <div class="feature-item">
+                                <div class="feature-icon">🔍</div>
+                                <div>
+                                    <h4>ATS Analysis</h4>
+                                    <p>Scan job descriptions to identify key requirements and keywords</p>
+                                </div>
+                            </div>
+                            <div class="feature-item">
+                                <div class="feature-icon">📝</div>
+                                <div>
+                                    <h4>Smart Optimization</h4>
+                                    <p>Automatically suggest improvements to match job requirements</p>
+                                </div>
+                            </div>
+                            <div class="feature-item">
+                                <div class="feature-icon">🎨</div>
+                                <div>
+                                    <h4>Professional Templates</h4>
+                                    <p>Choose from ATS-friendly templates designed for different industries</p>
+                                </div>
+                            </div>
+                            <div class="feature-item">
+                                <div class="feature-icon">⚡</div>
+                                <div>
+                                    <h4>Instant Feedback</h4>
+                                    <p>Get real-time suggestions on content, formatting, and keyword density</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h3>Key Benefits</h3>
+                        <p>• 3x more interview calls • 85% ATS compatibility score • Professional formatting • Industry-specific optimization</p>
+
+                        <div class="tech-stack">
+                            <span class="tech-tag">Natural Language Processing</span>
+                            <span class="tech-tag">ATS Simulation</span>
+                            <span class="tech-tag">Template Engine</span>
+                            <span class="tech-tag">Real-time Analysis</span>
+                        </div>
+
+                        <a href="signupLogin.html" class="btn btn-primary">Optimize Your CV Now</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Talent Connector -->
+        <section id="talent-connector" class="solution-detail-section">
+            <div class="container">
+                <div class="solution-detail-grid">
+                    <div class="solution-content">
+                        <h2>Talent Connector</h2>
+                        <p>Intelligent matching platform that connects verified candidates with the right employers. Save time and find the perfect fit with our AI-powered matching algorithm.</p>
+                        
+                        <div class="solution-features">
+                            <div class="feature-item">
+                                <div class="feature-icon">🤝</div>
+                                <div>
+                                    <h4>Smart Matching</h4>
+                                    <p>AI algorithms match candidates to jobs based on skills, experience, and culture fit</p>
+                                </div>
+                            </div>
+                            <div class="feature-item">
+                                <div class="feature-icon">✅</div>
+                                <div>
+                                    <h4>Verified Skills</h4>
+                                    <p>All candidates undergo skill verification through assessments and certifications</p>
+                                </div>
+                            </div>
+                            <div class="feature-item">
+                                <div class="feature-icon">📊</div>
+                                <div>
+                                    <h4>Employer Dashboard</h4>
+                                    <p>Comprehensive tools for job posting, candidate management, and analytics</p>
+                                </div>
+                            </div>
+                            <div class="feature-item">
+                                <div class="feature-icon">⚡</div>
+                                <div>
+                                    <h4>Real-time Updates</h4>
+                                    <p>Instant notifications for new matches, applications, and status changes</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h3>For Employers</h3>
+                        <p>• Reduce hiring time by 60% • Access pre-vetted candidates • Save on recruitment costs • Better candidate quality</p>
+
+                        <h3>For Job Seekers</h3>
+                        <p>• Get matched with relevant jobs • Showcase verified skills • Direct employer connections • Career growth opportunities</p>
+
+                        <div class="tech-stack">
+                            <span class="tech-tag">AI Matching Algorithm</span>
+                            <span class="tech-tag">Skill Verification</span>
+                            <span class="tech-tag">Real-time Messaging</span>
+                            <span class="tech-tag">Analytics Dashboard</span>
+                        </div>
+
+                        <div class="cta-buttons">
+                            <a href="signupLogin.html" class="btn btn-primary">Post a Job</a>
+                            <a href="signupLogin.html" class="btn btn-outline">Find Jobs</a>
+                        </div>
+                    </div>
+                    <div class="solution-visual">
+                        <img src="https://images.unsplash.com/photo-1551836026-d5cbc839262c?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Talent Connector">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Smart Inventory Tracker -->
+        <section id="inventory-tracker" class="solution-detail-section">
+            <div class="container">
+                <div class="solution-detail-grid">
+                    <div class="solution-visual">
+                        <img src="https://images.unsplash.com/photo-1565689228866-1f6b827efb7b?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Smart Inventory Tracker">
+                    </div>
+                    <div class="solution-content">
+                        <h2>Smart Inventory Tracker</h2>
+                        <p>IoT-powered inventory management solution designed for micro-entrepreneurs. Monitor stock levels, track temperature-sensitive items, and receive smart alerts.</p>
+                        
+                        <div class="solution-features">
+                            <div class="feature-item">
+                                <div class="feature-icon">📱</div>
+                                <div>
+                                    <h4>Real-time Monitoring</h4>
+                                    <p>Track inventory levels, sales, and stock movements in real-time</p>
+                                </div>
+                            </div>
+                            <div class="feature-item">
+                                <div class="feature-icon">🌡️</div>
+                                <div>
+                                    <h4>Temperature Tracking</h4>
+                                    <p>DS18B20 sensors monitor temperature for perishable goods</p>
+                                </div>
+                            </div>
+                            <div class="feature-item">
+                                <div class="feature-icon">⚠️</div>
+                                <div>
+                                    <h4>Smart Alerts</h4>
+                                    <p>Get notified for low stock, temperature breaches, and reorder points</p>
+                                </div>
+                            </div>
+                            <div class="feature-item">
+                                <div class="feature-icon">📈</div>
+                                <div>
+                                    <h4>Sales Analytics</h4>
+                                    <p>Generate reports on sales trends, popular items, and revenue patterns</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h3>Hardware Components</h3>
+                        <p>• ESP32 Microcontroller • DS18B20 Temperature Sensors • 16x2 LCD Display • LED Status Indicators • WiFi Module</p>
+
+                        <h3>Software Features</h3>
+                        <p>• Web Dashboard • Mobile App • Automated Reports • Supplier Management • Barcode Scanning</p>
+
+                        <div class="tech-stack">
+                            <span class="tech-tag">IoT Sensors</span>
+                            <span class="tech-tag">ESP32 Microcontroller</span>
+                            <span class="tech-tag">Real-time Database</span>
+                            <span class="tech-tag">Mobile App</span>
+                        </div>
+
+                        <a href="signupLogin.html" class="btn btn-primary">View Live Demo</a>
                     </div>
                 </div>
             </div>
@@ -947,13 +1266,13 @@
                     <div class="footer-column">
                         <h3>Solutions</h3>
                         <ul class="footer-links">
-                            <li><a href="signupLogin.html">Skills & Mentorship
+                            <li><a href="#skills-hub">Skills & Mentorship
                                     Hub</a></li>
-                            <li><a href="signupLogin.html">CV Optimizer
+                            <li><a href="#cv-optimizer">CV Optimizer
                                     (CVision)</a></li>
-                            <li><a href="signupLogin.html">Talent
+                            <li><a href="#talent-connector">Talent
                                     Connector</a></li>
-                            <li><a href="signupLogin.html">Smart Inventory
+                            <li><a href="#inventory-tracker">Smart Inventory
                                     Tracker</a></li>
                         </ul>
                     </div>
@@ -1004,8 +1323,22 @@
             navLinks.classList.remove('open');
             }
         });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                    // Close mobile menu if open
+                    navLinks.classList.remove('open');
+                }
+            });
+        });
         </script>
     </body>
-
 </html>
-

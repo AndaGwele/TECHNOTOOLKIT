@@ -3,7 +3,8 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Techno-Toolkit | Empowering Communities Through Technology</title>
+        <title>Techno-Toolkit | Empowering Communities Through
+            Technology</title>
         <style>
         /* CSS Variables for consistent theming */
         :root {
@@ -30,7 +31,6 @@
             line-height: 1.6;
             color: var(--dark);
             background-color: var(--light);
-            scroll-behavior: smooth;
         }
 
         h1, h2, h3, h4 {
@@ -209,29 +209,14 @@
         }
 
         /* Hero Section */
+        /* linear-gradient(rgba(37, 99, 235, 0.9), rgba(37, 99, 235, 0.8)), */
         .hero {
-            background: linear-gradient(135deg, var(--primary) 0%, #1d4ed8 100%);
+            background: url('https://images.unsplash.com/photo-1521737711867-e3b97375f902?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80');
+            background-size: cover;
+            background-position: center;
             color: white;
             text-align: center;
             padding: 8rem 0;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .hero::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" opacity="0.1"><polygon fill="white" points="0,1000 1000,0 1000,1000"/></svg>');
-            background-size: cover;
-        }
-
-        .hero .container {
-            position: relative;
-            z-index: 1;
         }
 
         .hero h1 {
@@ -243,7 +228,6 @@
             font-size: 1.25rem;
             max-width: 700px;
             margin: 0 auto 2.5rem;
-            opacity: 0.9;
         }
 
         .hero-buttons {
@@ -266,16 +250,15 @@
             box-shadow: var(--shadow);
             transition: var(--transition);
             text-align: center;
-            border-top: 4px solid var(--primary);
         }
 
         .solution-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
 
         .solution-icon {
-            font-size: 3rem;
+            font-size: 2.5rem;
             margin-bottom: 1.5rem;
             color: var(--primary);
         }
@@ -283,7 +266,6 @@
         .solution-card h3 {
             font-size: 1.5rem;
             margin-bottom: 1rem;
-            color: var(--dark);
         }
 
         .solution-card p {
@@ -301,7 +283,6 @@
             margin-bottom: 0.5rem;
             position: relative;
             padding-left: 1.5rem;
-            color: var(--neutral);
         }
 
         .feature-list li:before {
@@ -312,178 +293,9 @@
             font-weight: bold;
         }
 
-        /* Detailed Solution Sections */
-        .solution-detail-section {
-            background-color: white;
-            position: relative;
-        }
-
-        .solution-detail-section:nth-child(even) {
-            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-        }
-
-        .solution-detail-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 4rem;
-            align-items: center;
-        }
-
-        .solution-content {
-            padding: 2rem 0;
-        }
-
-        .solution-content h2 {
-            font-size: 2.5rem;
-            color: var(--primary);
-            margin-bottom: 1.5rem;
-            line-height: 1.1;
-        }
-
-        .solution-content > p {
-            font-size: 1.125rem;
-            color: var(--neutral);
-            line-height: 1.7;
-            margin-bottom: 2rem;
-        }
-
-        .solution-content h3 {
-            font-size: 1.5rem;
-            color: var(--dark);
-            margin: 2.5rem 0 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 2px solid var(--primary);
-            display: inline-block;
-        }
-
-        .solution-features {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 1.5rem;
-            margin: 2.5rem 0;
-        }
-
-        .feature-item {
-            display: flex;
-            align-items: flex-start;
-            gap: 1.5rem;
-            padding: 1.5rem;
-            background: white;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            transition: var(--transition);
-        }
-
-        .feature-item:hover {
-            transform: translateX(5px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        }
-
-        .feature-icon {
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, var(--primary) 0%, #1d4ed8 100%);
-            color: white;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            font-size: 1.5rem;
-        }
-
-        .feature-item-content h4 {
-            font-size: 1.25rem;
-            margin-bottom: 0.5rem;
-            color: var(--dark);
-        }
-
-        .feature-item-content p {
-            color: var(--neutral);
-            margin-bottom: 0;
-            line-height: 1.6;
-        }
-
-        .solution-visual {
-            text-align: center;
-            position: relative;
-        }
-
-        .solution-visual::before {
-            content: '';
-            position: absolute;
-            top: -20px;
-            left: -20px;
-            right: 20px;
-            bottom: 20px;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-            border-radius: var(--radius);
-            opacity: 0.1;
-            z-index: 0;
-        }
-
-        .solution-visual-content {
-            position: relative;
-            z-index: 1;
-            background: white;
-            padding: 2rem;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            border: 1px solid #e2e8f0;
-        }
-
-        .solution-visual-placeholder {
-            width: 100%;
-            height: 300px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: var(--radius);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 1.5rem;
-            font-weight: 600;
-        }
-
-        .visual-description {
-            margin-top: 1.5rem;
-            color: var(--neutral);
-            font-style: italic;
-        }
-
-        .tech-stack {
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-            margin: 2rem 0;
-        }
-
-        .tech-tag {
-            background: white;
-            padding: 0.75rem 1.25rem;
-            border-radius: 25px;
-            font-size: 0.875rem;
-            color: var(--primary);
-            border: 2px solid var(--primary);
-            font-weight: 500;
-            transition: var(--transition);
-        }
-
-        .tech-tag:hover {
-            background: var(--primary);
-            color: white;
-            transform: translateY(-2px);
-        }
-
         /* Problem Section */
         .problem-section {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .problem-section .section-title h2,
-        .problem-section .section-title p {
-            color: white;
+            background-color: #f1f5f9;
         }
 
         .problem-stats {
@@ -493,30 +305,22 @@
         }
 
         .stat-card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
+            background: white;
             border-radius: var(--radius);
-            padding: 2.5rem 2rem;
+            padding: 2rem;
             text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            transition: var(--transition);
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-            background: rgba(255, 255, 255, 0.15);
+            box-shadow: var(--shadow);
         }
 
         .stat-number {
-            font-size: 3rem;
+            font-size: 2.5rem;
             font-weight: 700;
-            color: white;
+            color: var(--primary);
             margin-bottom: 0.5rem;
         }
 
         .stat-description {
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 1.125rem;
+            color: var(--neutral);
         }
 
         /* How It Works */
@@ -526,18 +330,6 @@
             align-items: center;
             flex-wrap: wrap;
             margin-top: 3rem;
-            position: relative;
-        }
-
-        .process-flow::before {
-            content: '';
-            position: absolute;
-            top: 40px;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
-            z-index: 0;
         }
 
         .process-step {
@@ -545,14 +337,12 @@
             flex: 1;
             min-width: 150px;
             margin-bottom: 2rem;
-            position: relative;
-            z-index: 1;
         }
 
         .step-icon {
             width: 80px;
             height: 80px;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            background-color: var(--primary);
             color: white;
             border-radius: 50%;
             display: flex;
@@ -561,16 +351,13 @@
             margin: 0 auto 1rem;
             font-size: 1.5rem;
             font-weight: bold;
-            border: 4px solid white;
-            box-shadow: var(--shadow);
         }
 
         .step-arrow {
             flex: 0 0 50px;
             text-align: center;
-            color: var(--primary);
-            font-size: 2rem;
-            font-weight: bold;
+            color: var(--neutral);
+            font-size: 1.5rem;
         }
 
         /* Success Metrics */
@@ -582,17 +369,7 @@
 
         .metric-card {
             text-align: center;
-            padding: 2rem 1.5rem;
-            background: white;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            transition: var(--transition);
-            border-top: 4px solid var(--secondary);
-        }
-
-        .metric-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
         }
 
         .metric-value {
@@ -604,7 +381,50 @@
 
         .metric-label {
             color: var(--neutral);
-            font-weight: 500;
+        }
+
+        /* Testimonials */
+        .testimonials-section {
+            background-color: #f1f5f9;
+        }
+
+        .testimonials-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .testimonial-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+        }
+
+        .testimonial-text {
+            font-style: italic;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .testimonial-text:before {
+            content: """;
+            font-size: 4rem;
+            color: var(--accent);
+            position: absolute;
+            top: -1.5rem;
+            left: -1rem;
+            opacity: 0.3;
+        }
+
+        .testimonial-author {
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .testimonial-role {
+            color: var(--neutral);
+            font-size: 0.875rem;
         }
 
         /* CTA Sections */
@@ -620,19 +440,11 @@
             padding: 3rem 2rem;
             text-align: center;
             box-shadow: var(--shadow);
-            border-top: 4px solid var(--primary);
-            transition: var(--transition);
-        }
-
-        .cta-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
         }
 
         .cta-card h3 {
             font-size: 1.5rem;
             margin-bottom: 1rem;
-            color: var(--dark);
         }
 
         .cta-card p {
@@ -647,9 +459,35 @@
             flex-wrap: wrap;
         }
 
+        /* Partners */
+        .partners-section {
+            background-color: #f1f5f9;
+            text-align: center;
+        }
+
+        .partners-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .partner-logo {
+            filter: grayscale(100%);
+            opacity: 0.7;
+            transition: var(--transition);
+            max-width: 150px;
+            margin: 0 auto;
+        }
+
+        .partner-logo:hover {
+            filter: grayscale(0%);
+            opacity: 1;
+        }
+
         /* Footer */
         footer {
-            background: linear-gradient(135deg, var(--dark) 0%, #0f172a 100%);
+            background-color: var(--dark);
             color: white;
             padding: 4rem 0 2rem;
         }
@@ -683,7 +521,6 @@
 
         .footer-links a:hover {
             color: white;
-            transform: translateX(5px);
         }
 
         .newsletter-form {
@@ -696,12 +533,6 @@
             padding: 0.75rem;
             border: none;
             border-radius: var(--radius) 0 0 var(--radius);
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-        }
-
-        .newsletter-input::placeholder {
-            color: #94a3b8;
         }
 
         .newsletter-btn {
@@ -727,36 +558,47 @@
 
         /* Responsive Design */
         @media (max-width: 768px) {
-            .nav-links {
-                position: absolute;
-                top: 100%;
-                left: 0;
-                right: 0;
-                width: 100%;
-                background: white;
-                box-shadow: var(--shadow);
-                border-radius: 0 0 var(--radius) var(--radius);
-                flex-direction: column;
-                align-items: flex-start;
-                padding: 0.5rem 0;
-                z-index: 999;
-                max-height: 0;
-                opacity: 0;
-                overflow: hidden;
-                transform: translateY(-10px);
-                transition:
-                    max-height 0.4s ease,
-                    opacity 0.3s ease,
-                    transform 0.4s ease;
-            }
 
+        .nav-links {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        width: 100%;
+        background: white;
+        box-shadow: var(--shadow);
+        border-radius: 0 0 var(--radius) var(--radius);
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 0.5rem 0;
+        z-index: 999;
+
+        /*  animation setup */
+        max-height: 0;
+        opacity: 0;
+        overflow: hidden;
+        transform: translateY(-10px);
+        transition:
+            max-height 0.4s ease,
+            opacity 0.3s ease,
+            transform 0.4s ease;
+        }
+
+        /* When open, smoothly roll down */
+        .nav-links.open {
+        display: flex;
+        max-height: 300px;
+        opacity: 1;
+        transform: translateY(0);
+        }
+
+
+            /* visible when open (JS will toggle this class) */
             .nav-links.open {
                 display: flex;
-                max-height: 300px;
-                opacity: 1;
-                transform: translateY(0);
             }
 
+            /* make nav items full-width with comfortable touch target */
             .nav-links li {
                 margin: 0;
                 width: 100%;
@@ -796,19 +638,6 @@
             .cta-buttons {
                 flex-direction: column;
             }
-
-            .solution-detail-grid {
-                grid-template-columns: 1fr;
-                gap: 2rem;
-            }
-
-            .solution-features {
-                grid-template-columns: 1fr;
-            }
-
-            .process-flow::before {
-                display: none;
-            }
         }
     </style>
         <link
@@ -827,14 +656,15 @@
                         <li class="dropdown">
                             <a href="#">Solutions ▾</a>
                             <div class="dropdown-content">
-                                <a href="#skills-hub">Skills & Mentorship Hub</a>
-                                <a href="#cv-optimizer">CV Optimizer (CVision)</a>
-                                <a href="#talent-connector">Talent Connector</a>
-                                <a href="#inventory-tracker">Smart Inventory Tracker</a>
+                                <a href="#">Skills & Mentorship Hub</a>
+                                <a href="#">CV Optimizer (CVision)</a>
+                                <a href="#">Talent Connector</a>
+                                <a href="#">Smart Inventory Tracker</a>
                             </div>
                         </li>
                         <li><a href="signupLogin.html"
                                 class="btn btn-outline">Sign In</a></li>
+
                     </ul>
 
                     <button class="mobile-menu-btn">☰</button>
@@ -870,7 +700,7 @@
                 <div class="solutions-grid">
                     <!-- Solution 1 -->
                     <div class="solution-card">
-                        <div class="solution-icon">🎓</div>
+                        <div class="solution-icon">❶</div>
                         <h3>Skills & Mentorship Hub</h3>
                         <p>Personalized learning paths and mentorship
                             programs</p>
@@ -880,13 +710,13 @@
                             <li>Industry Certifications</li>
                             <li>Career Guidance</li>
                         </ul>
-                        <a href="#skills-hub" class="btn btn-primary">Learn
+                        <a href="signupLogin.html" class="btn btn-primary">Learn
                             More</a>
                     </div>
 
                     <!-- Solution 2 -->
                     <div class="solution-card">
-                        <div class="solution-icon">📄</div>
+                        <div class="solution-icon">❷</div>
                         <h3>CV Optimizer (CVision)</h3>
                         <p>ATS-friendly resume builder with smart keyword
                             matching</p>
@@ -896,13 +726,13 @@
                             <li>Formatting Templates</li>
                             <li>Instant Feedback</li>
                         </ul>
-                        <a href="#cv-optimizer" class="btn btn-primary">Try
+                        <a href="signupLogin.html" class="btn btn-primary">Try
                             CVision</a>
                     </div>
 
                     <!-- Solution 3 -->
                     <div class="solution-card">
-                        <div class="solution-icon">🤝</div>
+                        <div class="solution-icon">💷</div>
                         <h3>Talent Connector</h3>
                         <p>Intelligent matching between candidates and
                             employers</p>
@@ -912,13 +742,13 @@
                             <li>Employer Dashboard</li>
                             <li>Performance Analytics</li>
                         </ul>
-                        <a href="#talent-connector" class="btn btn-primary">Find
+                        <a href="signupLogin.html" class="btn btn-primary">Find
                             Talent</a>
                     </div>
 
                     <!-- Solution 4 -->
                     <div class="solution-card">
-                        <div class="solution-icon">📦</div>
+                        <div class="solution-icon">💹</div>
                         <h3>Smart Inventory Tracker</h3>
                         <p>Inventory management for township
                             micro-entrepreneurs</p>
@@ -928,271 +758,8 @@
                             <li>Low Stock Alerts</li>
                             <li>Sales Forecasting</li>
                         </ul>
-                        <a href="#inventory-tracker" class="btn btn-primary">See
+                        <a href="signupLogin.html" class="btn btn-primary">See
                             Demo</a>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Detailed Solution Sections -->
-        
-        <!-- Skills & Mentorship Hub -->
-        <section id="skills-hub" class="solution-detail-section">
-            <div class="container">
-                <div class="solution-detail-grid">
-                    <div class="solution-content">
-                        <h2>Skills & Mentorship Hub</h2>
-                        <p>Transform your career with personalized learning paths and direct access to industry mentors. Our platform bridges the gap between education and employment through targeted skill development.</p>
-                        
-                        <div class="solution-features">
-                            <div class="feature-item">
-                                <div class="feature-icon">🎯</div>
-                                <div class="feature-item-content">
-                                    <h4>Personalized Learning</h4>
-                                    <p>AI-powered recommendations based on your career goals and skill gaps</p>
-                                </div>
-                            </div>
-                            <div class="feature-item">
-                                <div class="feature-icon">👥</div>
-                                <div class="feature-item-content">
-                                    <h4>Expert Mentors</h4>
-                                    <p>Connect with industry professionals for 1-on-1 guidance and career advice</p>
-                                </div>
-                            </div>
-                            <div class="feature-item">
-                                <div class="feature-icon">📊</div>
-                                <div class="feature-item-content">
-                                    <h4>Progress Tracking</h4>
-                                    <p>Monitor your learning journey with detailed analytics and milestone tracking</p>
-                                </div>
-                            </div>
-                            <div class="feature-item">
-                                <div class="feature-icon">🏆</div>
-                                <div class="feature-item-content">
-                                    <h4>Certifications</h4>
-                                    <p>Earn industry-recognized certificates to validate your skills</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <h3>How It Works</h3>
-                        <p>1. Complete your skills assessment → 2. Receive personalized learning path → 3. Connect with matched mentors → 4. Build projects and earn certifications → 5. Get job-ready</p>
-
-                        <div class="tech-stack">
-                            <span class="tech-tag">AI/ML Algorithms</span>
-                            <span class="tech-tag">Learning Management System</span>
-                            <span class="tech-tag">Video Conferencing</span>
-                            <span class="tech-tag">Progress Analytics</span>
-                        </div>
-
-                        <a href="signupLogin.html" class="btn btn-primary">Start Your Learning Journey</a>
-                    </div>
-                    <div class="solution-visual">
-                        <div class="solution-visual-content">
-                            <div class="solution-visual-placeholder">
-                                Learning Platform
-                            </div>
-                            <p class="visual-description">Interactive learning environment with progress tracking</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- CV Optimizer -->
-        <section id="cv-optimizer" class="solution-detail-section">
-            <div class="container">
-                <div class="solution-detail-grid">
-                    <div class="solution-visual">
-                        <div class="solution-visual-content">
-                            <div class="solution-visual-placeholder" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-                                CV Builder Interface
-                            </div>
-                            <p class="visual-description">Smart resume builder with real-time optimization</p>
-                        </div>
-                    </div>
-                    <div class="solution-content">
-                        <h2>CV Optimizer (CVision)</h2>
-                        <p>Beat the ATS and get noticed by employers. Our intelligent resume builder analyzes job descriptions and optimizes your CV with the right keywords and formatting.</p>
-                        
-                        <div class="solution-features">
-                            <div class="feature-item">
-                                <div class="feature-icon">🔍</div>
-                                <div class="feature-item-content">
-                                    <h4>ATS Analysis</h4>
-                                    <p>Scan job descriptions to identify key requirements and keywords</p>
-                                </div>
-                            </div>
-                            <div class="feature-item">
-                                <div class="feature-icon">📝</div>
-                                <div class="feature-item-content">
-                                    <h4>Smart Optimization</h4>
-                                    <p>Automatically suggest improvements to match job requirements</p>
-                                </div>
-                            </div>
-                            <div class="feature-item">
-                                <div class="feature-icon">🎨</div>
-                                <div class="feature-item-content">
-                                    <h4>Professional Templates</h4>
-                                    <p>Choose from ATS-friendly templates designed for different industries</p>
-                                </div>
-                            </div>
-                            <div class="feature-item">
-                                <div class="feature-icon">⚡</div>
-                                <div class="feature-item-content">
-                                    <h4>Instant Feedback</h4>
-                                    <p>Get real-time suggestions on content, formatting, and keyword density</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <h3>Key Benefits</h3>
-                        <p>• 3x more interview calls • 85% ATS compatibility score • Professional formatting • Industry-specific optimization</p>
-
-                        <div class="tech-stack">
-                            <span class="tech-tag">Natural Language Processing</span>
-                            <span class="tech-tag">ATS Simulation</span>
-                            <span class="tech-tag">Template Engine</span>
-                            <span class="tech-tag">Real-time Analysis</span>
-                        </div>
-
-                        <a href="signupLogin.html" class="btn btn-primary">Optimize Your CV Now</a>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Talent Connector -->
-        <section id="talent-connector" class="solution-detail-section">
-            <div class="container">
-                <div class="solution-detail-grid">
-                    <div class="solution-content">
-                        <h2>Talent Connector</h2>
-                        <p>Intelligent matching platform that connects verified candidates with the right employers. Save time and find the perfect fit with our AI-powered matching algorithm.</p>
-                        
-                        <div class="solution-features">
-                            <div class="feature-item">
-                                <div class="feature-icon">🤝</div>
-                                <div class="feature-item-content">
-                                    <h4>Smart Matching</h4>
-                                    <p>AI algorithms match candidates to jobs based on skills, experience, and culture fit</p>
-                                </div>
-                            </div>
-                            <div class="feature-item">
-                                <div class="feature-icon">✅</div>
-                                <div class="feature-item-content">
-                                    <h4>Verified Skills</h4>
-                                    <p>All candidates undergo skill verification through assessments and certifications</p>
-                                </div>
-                            </div>
-                            <div class="feature-item">
-                                <div class="feature-icon">📊</div>
-                                <div class="feature-item-content">
-                                    <h4>Employer Dashboard</h4>
-                                    <p>Comprehensive tools for job posting, candidate management, and analytics</p>
-                                </div>
-                            </div>
-                            <div class="feature-item">
-                                <div class="feature-icon">⚡</div>
-                                <div class="feature-item-content">
-                                    <h4>Real-time Updates</h4>
-                                    <p>Instant notifications for new matches, applications, and status changes</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <h3>For Employers</h3>
-                        <p>• Reduce hiring time by 60% • Access pre-vetted candidates • Save on recruitment costs • Better candidate quality</p>
-
-                        <h3>For Job Seekers</h3>
-                        <p>• Get matched with relevant jobs • Showcase verified skills • Direct employer connections • Career growth opportunities</p>
-
-                        <div class="tech-stack">
-                            <span class="tech-tag">AI Matching Algorithm</span>
-                            <span class="tech-tag">Skill Verification</span>
-                            <span class="tech-tag">Real-time Messaging</span>
-                            <span class="tech-tag">Analytics Dashboard</span>
-                        </div>
-
-                        <div class="cta-buttons">
-                            <a href="signupLogin.html" class="btn btn-primary">Post a Job</a>
-                            <a href="signupLogin.html" class="btn btn-outline">Find Jobs</a>
-                        </div>
-                    </div>
-                    <div class="solution-visual">
-                        <div class="solution-visual-content">
-                            <div class="solution-visual-placeholder" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
-                                Talent Matching
-                            </div>
-                            <p class="visual-description">AI-powered candidate-employer matching system</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Smart Inventory Tracker -->
-        <section id="inventory-tracker" class="solution-detail-section">
-            <div class="container">
-                <div class="solution-detail-grid">
-                    <div class="solution-visual">
-                        <div class="solution-visual-content">
-                            <div class="solution-visual-placeholder" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
-                                Inventory Dashboard
-                            </div>
-                            <p class="visual-description">Real-time inventory monitoring with IoT sensors</p>
-                        </div>
-                    </div>
-                    <div class="solution-content">
-                        <h2>Smart Inventory Tracker</h2>
-                        <p>IoT-powered inventory management solution designed for micro-entrepreneurs. Monitor stock levels, track temperature-sensitive items, and receive smart alerts.</p>
-                        
-                        <div class="solution-features">
-                            <div class="feature-item">
-                                <div class="feature-icon">📱</div>
-                                <div class="feature-item-content">
-                                    <h4>Real-time Monitoring</h4>
-                                    <p>Track inventory levels, sales, and stock movements in real-time</p>
-                                </div>
-                            </div>
-                            <div class="feature-item">
-                                <div class="feature-icon">🌡️</div>
-                                <div class="feature-item-content">
-                                    <h4>Temperature Tracking</h4>
-                                    <p>DS18B20 sensors monitor temperature for perishable goods</p>
-                                </div>
-                            </div>
-                            <div class="feature-item">
-                                <div class="feature-icon">⚠️</div>
-                                <div class="feature-item-content">
-                                    <h4>Smart Alerts</h4>
-                                    <p>Get notified for low stock, temperature breaches, and reorder points</p>
-                                </div>
-                            </div>
-                            <div class="feature-item">
-                                <div class="feature-icon">📈</div>
-                                <div class="feature-item-content">
-                                    <h4>Sales Analytics</h4>
-                                    <p>Generate reports on sales trends, popular items, and revenue patterns</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <h3>Hardware Components</h3>
-                        <p>• ESP32 Microcontroller • DS18B20 Temperature Sensors • 16x2 LCD Display • LED Status Indicators • WiFi Module</p>
-
-                        <h3>Software Features</h3>
-                        <p>• Web Dashboard • Mobile App • Automated Reports • Supplier Management • Barcode Scanning</p>
-
-                        <div class="tech-stack">
-                            <span class="tech-tag">IoT Sensors</span>
-                            <span class="tech-tag">ESP32 Microcontroller</span>
-                            <span class="tech-tag">Real-time Database</span>
-                            <span class="tech-tag">Mobile App</span>
-                        </div>
-
-                        <a href="signupLogin.html" class="btn btn-primary">View Live Demo</a>
                     </div>
                 </div>
             </div>
@@ -1380,13 +947,13 @@
                     <div class="footer-column">
                         <h3>Solutions</h3>
                         <ul class="footer-links">
-                            <li><a href="#skills-hub">Skills & Mentorship
+                            <li><a href="signupLogin.html">Skills & Mentorship
                                     Hub</a></li>
-                            <li><a href="#cv-optimizer">CV Optimizer
+                            <li><a href="signupLogin.html">CV Optimizer
                                     (CVision)</a></li>
-                            <li><a href="#talent-connector">Talent
+                            <li><a href="signupLogin.html">Talent
                                     Connector</a></li>
-                            <li><a href="#inventory-tracker">Smart Inventory
+                            <li><a href="signupLogin.html">Smart Inventory
                                     Tracker</a></li>
                         </ul>
                     </div>
@@ -1437,22 +1004,7 @@
             navLinks.classList.remove('open');
             }
         });
-
-        // Smooth scrolling for anchor links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                    // Close mobile menu if open
-                    navLinks.classList.remove('open');
-                }
-            });
-        });
         </script>
     </body>
+
 </html>

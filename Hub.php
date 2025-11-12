@@ -861,6 +861,7 @@ $mentors_count = $stats['mentors_count'];
         border-left: 4px solid #007bff;
     }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
 </head>
 
 <body>
@@ -1808,6 +1809,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('Error extracting text from PDF. Please try another file.');
             });
         };
+         if (!extractedText) {
+            alert('Please upload a resume PDF first.');
+            return;
+        }
+
+        if (!jobDescription) {
+            alert('Please enter a job description.');
+            return;
+        }
+       
 
         fileReader.readAsArrayBuffer(file);
     }

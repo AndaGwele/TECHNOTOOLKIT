@@ -1817,16 +1817,7 @@ document.addEventListener('DOMContentLoaded', function() {
         analyzeBtn.addEventListener('click', function() {
             const jobDescription = jobDescriptionTextarea.value.trim();
             
-            if (!extractedText) {
-                alert('Please upload a resume first.');
-                return;
-            }
-
-            if (!jobDescription) {
-                alert('Please enter a job description.');
-                return;
-            }
-
+      
             analyzeResume(extractedText, jobDescription);
         });
     }
@@ -2001,4 +1992,5 @@ document.addEventListener('DOMContentLoaded', function() {
     <?php endif; ?>
 </body>
 </html>
+
 

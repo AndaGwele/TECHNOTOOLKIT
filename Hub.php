@@ -1534,61 +1534,155 @@ $mentors_count = $stats['mentors_count'];
     </div>
 
     <script>
-        // Simple JavaScript for UI interactions
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM loaded');
+      // Simple JavaScript for UI interactions
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded');
 
-            // Navigation
-            const navLinks = document.querySelectorAll('.nav-link');
-            const sections = document.querySelectorAll('.section');
+    // Navigation
+    const navLinks = document.querySelectorAll('.nav-link');
+    const sections = document.querySelectorAll('.section');
 
-            navLinks.forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const targetSection = this.getAttribute('data-section');
+    navLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetSection = this.getAttribute('data-section');
 
-                    // Update active nav link
-                    navLinks.forEach(l => l.classList.remove('active'));
-                    this.classList.add('active');
+            // Update active nav link
+            navLinks.forEach(l => l.classList.remove('active'));
+            this.classList.add('active');
 
-                    // Show target section
-                    sections.forEach(s => s.classList.remove('active'));
-                    document.getElementById(targetSection).classList.add('active');
-                });
-            });
+            // Show target section
+            sections.forEach(s => s.classList.remove('active'));
+            document.getElementById(targetSection).classList.add('active');
+        });
+    });
 
-            // Modal handling
-            const modals = document.querySelectorAll('.modal');
-            const closeButtons = document.querySelectorAll('.close');
+    // Modal handling
+    const modals = document.querySelectorAll('.modal');
+    const closeButtons = document.querySelectorAll('.close');
 
-            // Bootcamp modal
-            const bootcampBtn = document.getElementById('bootcamp-btn');
-            if (bootcampBtn) {
-                bootcampBtn.addEventListener('click', function() {
-                    document.getElementById('bootcamp-modal').style.display = 'block';
-                });
-            }
+    // Bootcamp modal
+    const bootcampBtn = document.getElementById('bootcamp-btn');
+    if (bootcampBtn) {
+        bootcampBtn.addEventListener('click', function() {
+            document.getElementById('bootcamp-modal').style.display = 'block';
+        });
+    }
 
-            // Skill modal
-            const skillBtn = document.getElementById('skill-btn');
-            if (skillBtn) {
-                skillBtn.addEventListener('click', function() {
-                    document.getElementById('skill-modal').style.display = 'block';
-                });
-            }
+    // Skill modal
+    const skillBtn = document.getElementById('skill-btn');
+    if (skillBtn) {
+        skillBtn.addEventListener('click', function() {
+            document.getElementById('skill-modal').style.display = 'block';
+        });
+    }
 
-            // Certification modal
-            const certBtn = document.getElementById('cert-btn');
-            if (certBtn) {
-                certBtn.addEventListener('click', function() {
-                    document.getElementById('cert-modal').style.display = 'block';
-                });
-            }
+    // Certification modal
+    const certBtn = document.getElementById('cert-btn');
+    if (certBtn) {
+        certBtn.addEventListener('click', function() {
+            document.getElementById('cert-modal').style.display = 'block';
+        });
+    }
 
-            // Job application modal
-            const applyButtons = document.querySelectorAll('.apply-btn');
-            applyButtons.forEach(button => {
-                button.addEventListener('click', function() {
+    // Job application modal
+    const applyButtons = document.querySelectorAll('.apply-btn');
+    applyButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const jobId = this.getAttribute('data-job-id');
+            const jobTitle = this.getAttribute('data-job-title');
+            const companyName = this.getAttribute('data-company-name');
+
+            document.getElementById('apply-job-id').value = jobId;
+            document.getElementById('job-title').value = jobTitle;
+            document.getElementById('company-name').value = companyName;
+            document.getElementById('job-application-modal').style.display = 'block';
+        });
+    });
+
+    // Job details modal
+    const viewJobButtons = document.querySelectorAll('.view-job-btn');
+    viewJobButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const job = JSON.parse(this.getAttribute('data-job'));
+            
+            document.getElementById('job-details-title').textContent = job.title;
+            
+            const content = `
+                <div class="card">
+                    <div class="card-header">
+                        <h3>${job.title}</h3>
+                        <p>${job.company_name} • ${job.location}</p>
+                        <p>Posted by: ${job.employer_name}</p>
+                    </div>
+                    
+                    <div class="job-details">
+                        <div class="job-detail-item">
+                            <span class="job-detail-label">Company:</span> ${job.company_name}
+                        </div>
+                        <div class="job-detail-item">
+                            <span class="job-detail-label">Location:</span> ${job.location}
+                        </div>
+                        <div class="job-detail-item">
+                            <span class="job-detail-label">Employment Type:</span> ${job.employment_type}
+                        </div>
+                        <div class="job-detail-item">
+                            <span class="job-detail-label">Salary Range:</span> ${job.salary_range}
+                        </div>
+                        <div class="job-detail-item">
+                            <span class="job-detail-label">Experience Level:</span> ${job.experience_level}
+                        </div>
+                        <div class="job-detail-item">
+                            <span class="job-detail-label">Category:</span> ${job.category}
+                        </div>
+                        <div class="job-detail-item">
+                            <span class="job-detail-label">Education Level:</span> ${job.education_level || 'Not specified'}
+                        </div>
+                        ${job.application_deadline ? `
+                        <div class="job-detail-item">
+                            <span class="job-detail-label">Application Deadline:</span> ${new Date(job.application_deadline).toLocaleDateString()}
+                        </div>
+                        ` : ''}
+                        <div class="job-detail-item">
+                            <span class="job-detail-label">Contact Email:</span> ${job.contact_email}
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <h4>Job Description</h4>
+                        <p>${job.description.replace(/\n/g, '<br>')}</p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <h4>Key Responsibilities</h4>
+                        <p>${job.responsibilities ? job.responsibilities.replace(/\n/g, '<br>') : 'Not specified'}</p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <h4>Requirements & Qualifications</h4>
+                        <p>${job.requirements ? job.requirements.replace(/\n/g, '<br>') : 'Not specified'}</p>
+                    </div>
+                    
+                    <div style="margin-top: 20px;">
+                        ${job.has_applied ? 
+                            '<button class="applied-btn" disabled>Already Applied</button>' : 
+                            `<button class="apply-btn" 
+                                    data-job-id="${job.id}"
+                                    data-job-title="${job.title}"
+                                    data-company-name="${job.company_name}">
+                                Apply Now
+                            </button>`
+                        }
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('job-details-content').innerHTML = content;
+            
+            // Re-attach event listener for apply button in modal
+            const modalApplyBtn = document.querySelector('#job-details-content .apply-btn');
+            if (modalApplyBtn) {
+                modalApplyBtn.addEventListener('click', function() {
                     const jobId = this.getAttribute('data-job-id');
                     const jobTitle = this.getAttribute('data-job-title');
                     const companyName = this.getAttribute('data-company-name');
@@ -1596,194 +1690,315 @@ $mentors_count = $stats['mentors_count'];
                     document.getElementById('apply-job-id').value = jobId;
                     document.getElementById('job-title').value = jobTitle;
                     document.getElementById('company-name').value = companyName;
+                    document.getElementById('job-details-modal').style.display = 'none';
                     document.getElementById('job-application-modal').style.display = 'block';
                 });
-            });
-
-            // Job details modal
-            const viewJobButtons = document.querySelectorAll('.view-job-btn');
-            viewJobButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const job = JSON.parse(this.getAttribute('data-job'));
-                    
-                    document.getElementById('job-details-title').textContent = job.title;
-                    
-                    const content = `
-                        <div class="card">
-                            <div class="card-header">
-                                <h3>${job.title}</h3>
-                                <p>${job.company_name} • ${job.location}</p>
-                                <p>Posted by: ${job.employer_name}</p>
-                            </div>
-                            
-                            <div class="job-details">
-                                <div class="job-detail-item">
-                                    <span class="job-detail-label">Company:</span> ${job.company_name}
-                                </div>
-                                <div class="job-detail-item">
-                                    <span class="job-detail-label">Location:</span> ${job.location}
-                                </div>
-                                <div class="job-detail-item">
-                                    <span class="job-detail-label">Employment Type:</span> ${job.employment_type}
-                                </div>
-                                <div class="job-detail-item">
-                                    <span class="job-detail-label">Salary Range:</span> ${job.salary_range}
-                                </div>
-                                <div class="job-detail-item">
-                                    <span class="job-detail-label">Experience Level:</span> ${job.experience_level}
-                                </div>
-                                <div class="job-detail-item">
-                                    <span class="job-detail-label">Category:</span> ${job.category}
-                                </div>
-                                <div class="job-detail-item">
-                                    <span class="job-detail-label">Education Level:</span> ${job.education_level || 'Not specified'}
-                                </div>
-                                ${job.application_deadline ? `
-                                <div class="job-detail-item">
-                                    <span class="job-detail-label">Application Deadline:</span> ${new Date(job.application_deadline).toLocaleDateString()}
-                                </div>
-                                ` : ''}
-                                <div class="job-detail-item">
-                                    <span class="job-detail-label">Contact Email:</span> ${job.contact_email}
-                                </div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <h4>Job Description</h4>
-                                <p>${job.description.replace(/\n/g, '<br>')}</p>
-                            </div>
-                            
-                            <div class="form-group">
-                                <h4>Key Responsibilities</h4>
-                                <p>${job.responsibilities ? job.responsibilities.replace(/\n/g, '<br>') : 'Not specified'}</p>
-                            </div>
-                            
-                            <div class="form-group">
-                                <h4>Requirements & Qualifications</h4>
-                                <p>${job.requirements ? job.requirements.replace(/\n/g, '<br>') : 'Not specified'}</p>
-                            </div>
-                            
-                            <div style="margin-top: 20px;">
-                                ${job.has_applied ? 
-                                    '<button class="applied-btn" disabled>Already Applied</button>' : 
-                                    `<button class="apply-btn" 
-                                            data-job-id="${job.id}"
-                                            data-job-title="${job.title}"
-                                            data-company-name="${job.company_name}">
-                                        Apply Now
-                                    </button>`
-                                }
-                            </div>
-                        </div>
-                    `;
-                    
-                    document.getElementById('job-details-content').innerHTML = content;
-                    
-                    // Re-attach event listener for apply button in modal
-                    const modalApplyBtn = document.querySelector('#job-details-content .apply-btn');
-                    if (modalApplyBtn) {
-                        modalApplyBtn.addEventListener('click', function() {
-                            const jobId = this.getAttribute('data-job-id');
-                            const jobTitle = this.getAttribute('data-job-title');
-                            const companyName = this.getAttribute('data-company-name');
-
-                            document.getElementById('apply-job-id').value = jobId;
-                            document.getElementById('job-title').value = jobTitle;
-                            document.getElementById('company-name').value = companyName;
-                            document.getElementById('job-details-modal').style.display = 'none';
-                            document.getElementById('job-application-modal').style.display = 'block';
-                        });
-                    }
-                    
-                    document.getElementById('job-details-modal').style.display = 'block';
-                });
-            });
-
-            // Mentor request modal
-            const requestButtons = document.querySelectorAll('.request-btn');
-            requestButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const mentorId = this.getAttribute('data-mentor-id');
-                    const mentorName = this.getAttribute('data-mentor-name');
-
-                    document.getElementById('mentor-id').value = mentorId;
-                    document.getElementById('mentor-name').value = mentorName;
-                    document.getElementById('mentor-modal').style.display = 'block';
-                });
-            });
-
-            // CVision Modal
-            const openCvisionBtn = document.getElementById('open-cvision-modal');
-            const cvisionModal = document.getElementById('cvision-modal');
+            }
             
-            if (openCvisionBtn) {
-                openCvisionBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    cvisionModal.style.display = 'block';
-                });
-            }
-
-            // Close modals
-            closeButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    this.closest('.modal').style.display = 'none';
-                });
-            });
-
-            // Close modal when clicking outside
-            window.addEventListener('click', function(e) {
-                modals.forEach(modal => {
-                    if (e.target === modal) {
-                        modal.style.display = 'none';
-                    }
-                });
-            });
-
-            // Job filters
-            const categoryFilter = document.getElementById('category-filter');
-            const employmentTypeFilter = document.getElementById('employment-type-filter');
-            const locationFilter = document.getElementById('location-filter');
-
-            if (categoryFilter) {
-                categoryFilter.addEventListener('change', filterJobs);
-            }
-            if (employmentTypeFilter) {
-                employmentTypeFilter.addEventListener('change', filterJobs);
-            }
-            if (locationFilter) {
-                locationFilter.addEventListener('input', filterJobs);
-            }
-
-            function filterJobs() {
-                const categoryValue = categoryFilter.value;
-                const employmentTypeValue = employmentTypeFilter.value;
-                const locationValue = locationFilter.value.toLowerCase();
-                const jobCards = document.querySelectorAll('.job-card');
-                
-                jobCards.forEach(card => {
-                    const category = card.getAttribute('data-category');
-                    const employmentType = card.getAttribute('data-employment-type');
-                    const location = card.getAttribute('data-location').toLowerCase();
-                    
-                    const categoryMatch = !categoryValue || category === categoryValue;
-                    const employmentTypeMatch = !employmentTypeValue || employmentType === employmentTypeValue;
-                    const locationMatch = !locationValue || location.includes(locationValue);
-                    
-                    card.style.display = categoryMatch && employmentTypeMatch && locationMatch ? 'block' : 'none';
-                });
-            }
-
-            // Close modal with Escape key
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') {
-                    modals.forEach(modal => {
-                        modal.style.display = 'none';
-                    });
-                }
-            });
+            document.getElementById('job-details-modal').style.display = 'block';
         });
+    });
+
+    // Mentor request modal
+    const requestButtons = document.querySelectorAll('.request-btn');
+    requestButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const mentorId = this.getAttribute('data-mentor-id');
+            const mentorName = this.getAttribute('data-mentor-name');
+
+            document.getElementById('mentor-id').value = mentorId;
+            document.getElementById('mentor-name').value = mentorName;
+            document.getElementById('mentor-modal').style.display = 'block';
+        });
+    });
+
+    // CV Analysis Functionality
+    const cvisionModal = document.getElementById('cvision-modal');
+    const openCvisionBtn = document.getElementById('open-cvision-modal');
+    const cvisionCloseBtn = cvisionModal.querySelector('.close');
+    const analyzeBtn = document.getElementById('cvision-analyze-btn');
+    const fileUpload = document.getElementById('cvision-document-upload');
+    const jobDescriptionTextarea = document.getElementById('cvision-job-description');
+    const loadingElement = document.getElementById('cvision-loading');
+    const aiFeedbackElement = document.getElementById('cvision-ai-feedback');
+    const matchResultElement = document.getElementById('cvision-match-result');
+    const feedbackContentElement = document.getElementById('cvision-feedback-content');
+    const successTextElement = document.getElementById('cvision-success-text');
+    
+    let extractedText = '';
+
+    // Open CVision Modal
+    if (openCvisionBtn) {
+        openCvisionBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            cvisionModal.style.display = 'block';
+        });
+    }
+
+    // Close CVision Modal
+    if (cvisionCloseBtn) {
+        cvisionCloseBtn.addEventListener('click', function() {
+            cvisionModal.style.display = 'none';
+        });
+    }
+
+    // Handle file upload and text extraction
+    if (fileUpload) {
+        fileUpload.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Validate file type and size
+            if (file.type !== 'application/pdf') {
+                alert('Please upload a PDF file.');
+                return;
+            }
+
+            if (file.size > 5 * 1024 * 1024) { // 5MB limit
+                alert('File size must be less than 5MB.');
+                return;
+            }
+
+            extractTextFromPDF(file);
+        });
+    }
+
+    // Extract text from PDF using PDF.js
+    function extractTextFromPDF(file) {
+        loadingElement.style.display = 'block';
+        successTextElement.style.display = 'none';
+        aiFeedbackElement.style.display = 'none';
+        matchResultElement.style.display = 'none';
+
+        const fileReader = new FileReader();
+        
+        fileReader.onload = function() {
+            const typedarray = new Uint8Array(this.result);
+            
+            // Load PDF using PDF.js
+            pdfjsLib.getDocument(typedarray).promise.then(function(pdf) {
+                let text = '';
+                const numPages = pdf.numPages;
+                const pagesPromises = [];
+
+                // Extract text from each page
+                for (let pageNum = 1; pageNum <= numPages; pageNum++) {
+                    pagesPromises.push(
+                        pdf.getPage(pageNum).then(function(page) {
+                            return page.getTextContent().then(function(textContent) {
+                                return textContent.items.map(item => item.str).join(' ');
+                            });
+                        })
+                    );
+                }
+
+                // Combine all pages text
+                Promise.all(pagesPromises).then(function(pagesText) {
+                    text = pagesText.join('\n');
+                    extractedText = text;
+                    
+                    loadingElement.style.display = 'none';
+                    successTextElement.style.display = 'block';
+                    
+                    console.log('Text extracted successfully:', text.substring(0, 200) + '...');
+                });
+            }).catch(function(error) {
+                console.error('Error extracting PDF text:', error);
+                loadingElement.style.display = 'none';
+                alert('Error extracting text from PDF. Please try another file.');
+            });
+        };
+
+        fileReader.readAsArrayBuffer(file);
+    }
+
+    // Analyze resume
+    if (analyzeBtn) {
+        analyzeBtn.addEventListener('click', function() {
+            const jobDescription = jobDescriptionTextarea.value.trim();
+            
+            if (!extractedText) {
+                alert('Please upload a resume first.');
+                return;
+            }
+
+            if (!jobDescription) {
+                alert('Please enter a job description.');
+                return;
+            }
+
+            analyzeResume(extractedText, jobDescription);
+        });
+    }
+
+    // Send analysis request to backend
+    function analyzeResume(cvText, jobDescription) {
+        loadingElement.style.display = 'block';
+        aiFeedbackElement.style.display = 'none';
+        matchResultElement.style.display = 'none';
+
+        fetch('cv_analysis.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                cv_text: cvText,
+                job_description: jobDescription
+            })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            loadingElement.style.display = 'none';
+            
+            if (data.error) {
+                throw new Error(data.error);
+            }
+
+            // Display AI analysis results
+            displayAIResults(data);
+        })
+        .catch(error => {
+            console.error('Error analyzing resume:', error);
+            loadingElement.style.display = 'none';
+            
+            // Fallback to basic keyword analysis if AI fails
+            performBasicKeywordAnalysis(extractedText, jobDescription);
+        });
+    }
+
+    // Display AI analysis results
+    function displayAIResults(aiData) {
+        // Assuming the AI response has a structure with candidates[0].content.parts[0].text
+        let analysisText = '';
+        
+        if (aiData.candidates && aiData.candidates[0] && aiData.candidates[0].content) {
+            analysisText = aiData.candidates[0].content.parts[0].text;
+        } else if (aiData.text) {
+            analysisText = aiData.text;
+        } else {
+            // If structure is different, try to display the raw response
+            analysisText = typeof aiData === 'string' ? aiData : JSON.stringify(aiData, null, 2);
+        }
+
+        // Format the text with line breaks and basic styling
+        const formattedText = analysisText
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\n/g, '<br>');
+
+        feedbackContentElement.innerHTML = formattedText;
+        aiFeedbackElement.style.display = 'block';
+        matchResultElement.style.display = 'none';
+    }
+
+    // Fallback basic keyword analysis
+    function performBasicKeywordAnalysis(cvText, jobDescription) {
+        // Extract keywords from job description (simple approach)
+        const jobKeywords = extractKeywords(jobDescription);
+        const cvKeywords = extractKeywords(cvText);
+        
+        // Find matching keywords
+        const matchingKeywords = jobKeywords.filter(keyword => 
+            cvKeywords.includes(keyword)
+        );
+        
+        // Calculate match percentage
+        const matchPercentage = jobKeywords.length > 0 
+            ? Math.round((matchingKeywords.length / jobKeywords.length) * 100)
+            : 0;
+        
+        // Find missing keywords
+        const missingKeywords = jobKeywords.filter(keyword => 
+            !cvKeywords.includes(keyword)
+        );
+
+        // Display basic analysis results
+        document.getElementById('cvision-match-percentage').textContent = matchPercentage;
+        document.getElementById('cvision-missing-keywords').textContent = 
+            missingKeywords.length > 0 ? missingKeywords.join(', ') : 'None';
+        
+        matchResultElement.style.display = 'block';
+        aiFeedbackElement.style.display = 'none';
+    }
+
+    // Simple keyword extraction function
+    function extractKeywords(text) {
+        return text
+            .toLowerCase()
+            .replace(/[^\w\s]/g, '')
+            .split(/\s+/)
+            .filter(word => word.length > 3) // Filter out short words
+            .filter((word, index, array) => array.indexOf(word) === index) // Remove duplicates
+            .slice(0, 20); // Limit to top 20 keywords
+    }
+
+    // Close modals
+    closeButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            this.closest('.modal').style.display = 'none';
+        });
+    });
+
+    // Close modal when clicking outside
+    window.addEventListener('click', function(e) {
+        modals.forEach(modal => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+    });
+
+    // Job filters
+    const categoryFilter = document.getElementById('category-filter');
+    const employmentTypeFilter = document.getElementById('employment-type-filter');
+    const locationFilter = document.getElementById('location-filter');
+
+    if (categoryFilter) {
+        categoryFilter.addEventListener('change', filterJobs);
+    }
+    if (employmentTypeFilter) {
+        employmentTypeFilter.addEventListener('change', filterJobs);
+    }
+    if (locationFilter) {
+        locationFilter.addEventListener('input', filterJobs);
+    }
+
+    function filterJobs() {
+        const categoryValue = categoryFilter.value;
+        const employmentTypeValue = employmentTypeFilter.value;
+        const locationValue = locationFilter.value.toLowerCase();
+        const jobCards = document.querySelectorAll('.job-card');
+        
+        jobCards.forEach(card => {
+            const category = card.getAttribute('data-category');
+            const employmentType = card.getAttribute('data-employment-type');
+            const location = card.getAttribute('data-location').toLowerCase();
+            
+            const categoryMatch = !categoryValue || category === categoryValue;
+            const employmentTypeMatch = !employmentTypeValue || employmentType === employmentTypeValue;
+            const locationMatch = !locationValue || location.includes(locationValue);
+            
+            card.style.display = categoryMatch && employmentTypeMatch && locationMatch ? 'block' : 'none';
+        });
+    }
+
+    // Close modal with Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            modals.forEach(modal => {
+                modal.style.display = 'none';
+            });
+        }
+    });
+});
     </script>
 
     <?php endif; ?>
 </body>
 </html>
+
